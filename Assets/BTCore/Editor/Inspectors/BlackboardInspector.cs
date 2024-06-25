@@ -17,37 +17,37 @@ using UnityEngine;
 
 namespace BTCore.Editor.Inspectors
 {
-    public class BlackboardInspector : InspectorBase, IDataSerializableEditor<Blackboard>
+    public class BlackboardInspector : InspectorBase, IDataSerializable<Blackboard>
     {
         [ShowInInspector]
         [LabelText("Name:")]
         [LabelWidth(100)]
-        private string _keyName;
+        private string _valueName;
         
         [ShowInInspector]
         [LabelText("Type:")]
         [LabelWidth(100)]
-        [ValueDropdown("GetKeyTypeNames")]
-        [InlineButton("AddBlackboardKey", "Add")]
-        private string _keyTypeName = "Int";
+        [ValueDropdown("GetValueTypeNames")]
+        [InlineButton("AddBlackboardValue", "Add")]
+        private string _valueTypeName = "Int";
 
         [ShowInInspector]
         [TableList(AlwaysExpanded = true, HideToolbar = true, ShowIndexLabels = true, ShowPaging = true)]
-        [ShowIf("_showKeyInspectors")]
+        [ShowIf("_showValueInspectors")]
         [OnValueChanged("OnFieldValueChanged")]
-        private List<BKInspector> _keyInspectors = new List<BKInspector>();
+        private List<BlackboardValueInspector> _valueInspectors = new List<BlackboardValueInspector>();
 
         private Blackboard _blackboard;
-        private readonly Dictionary<string, Type> _typeName2KeyTypes = new Dictionary<string, Type>();
-        private bool _showKeyInspectors => _keyInspectors.Count > 0;
+        private readonly Dictionary<string, Type> _typeName2ValueTypes = new Dictionary<string, Type>();
+        private bool _showValueInspectors => _valueInspectors.Count > 0;
 
         [HideInInspector]
-        public Action OnKeyListChanged;
+        public Action OnValueListChanged;
 
         public void ImportData(Blackboard data) {
             _blackboard = data;
-            _keyInspectors = data.Keys.ConvertAll(keyData => {
-                var inspector = BKInspector.Create(keyData.Type);
+            _valueInspectors = data.Values.ConvertAll(keyData => {
+                var inspector = BlackboardValueInspector.Create(keyData.Type);
                 inspector.ImportData(keyData);
                 return inspector;
             });
@@ -57,49 +57,49 @@ namespace BTCore.Editor.Inspectors
             return _blackboard;
         }
         
-        private void AddBlackboardKey() {
-            if (string.IsNullOrEmpty(_keyName)) {
+        private void AddBlackboardValue() {
+            if (string.IsNullOrEmpty(_valueName)) {
                 BTEditorWindow.Instance.ShowNotification("变量名不能为空!");
                 return;
             }
             
-            var foundKey = _keyInspectors.Find(key => key.KeyName == _keyName);
+            var foundKey = _valueInspectors.Find(key => key.ValueName == _valueName);
             if (foundKey != null) {
                 BTEditorWindow.Instance.ShowNotification("已存在同名变量!");
                 return;
             }
 
-            if (!_typeName2KeyTypes.TryGetValue(_keyTypeName, out var keyType)) {
+            if (!_typeName2ValueTypes.TryGetValue(_valueTypeName, out var keyType)) {
                 return;
             }
 
-            var keyData = BlackboardKey.Create(keyType, _keyName);
+            var keyData = BlackboardValue.Create(keyType, _valueName);
             if (keyData != null) {
-                _blackboard.Keys.Add(keyData);
-                var inspector = BKInspector.Create(keyData.Type);
+                _blackboard.Values.Add(keyData);
+                var inspector = BlackboardValueInspector.Create(keyData.Type);
                 inspector.ImportData(keyData);
-                _keyInspectors.Add(inspector);
+                _valueInspectors.Add(inspector);
             }
         }
 
-        private IEnumerable GetKeyTypeNames() { 
-            if (_typeName2KeyTypes.Count > 0) {
-                return _typeName2KeyTypes.Keys;
+        private IEnumerable GetValueTypeNames() { 
+            if (_typeName2ValueTypes.Count > 0) {
+                return _typeName2ValueTypes.Keys;
             }
             
-            foreach (var type in TypeCache.GetTypesDerivedFrom<BlackboardKey>()) {
+            foreach (var type in TypeCache.GetTypesDerivedFrom<BlackboardValue>()) {
                 if (type.IsGenericType) {
                     continue;
                 }
-                _typeName2KeyTypes.Add(type.Name.Replace("Key", ""), type);
+                _typeName2ValueTypes.Add(type.Name.Replace("Value", ""), type);
             }
             
-            return _typeName2KeyTypes.Keys;;
+            return _typeName2ValueTypes.Keys;;
         }
         
         protected override void OnFieldValueChanged() {
-            _blackboard.Keys = _keyInspectors.ConvertAll(inspector => inspector.ExportData());
-            OnKeyListChanged?.Invoke();
+            _blackboard.Values = _valueInspectors.ConvertAll(inspector => inspector.ExportData());
+            OnValueListChanged?.Invoke();
         }
 
         public override void Reset() {

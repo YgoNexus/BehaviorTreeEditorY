@@ -1,77 +1,66 @@
 ﻿//------------------------------------------------------------
-//        File:  BTData.cs
-//       Brief:  BTData
+//        File:  NodeData.cs
+//       Brief:  NodeData
 //
 //      Author:  Saroce, Saroce233@163.com
 //
-//    Modified:  2023-10-01
+//    Modified:  2023-10-17
 //============================================================
 
-using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
-using BTCore.Runtime.Blackboards;
-using BTCore.Runtime.Composites;
-using BTCore.Runtime.Decorators;
 
 namespace BTCore.Runtime
 {
     public class BTData
     {
-        public TreeNodeData TreeNodeData { get; set; } = new TreeNodeData();
-        public Blackboard Blackboard { get; set; } = new Blackboard();
-        public BTSettings Settings { get; set; } = new BTSettings();
+        public EntryNode EntryNode;
+        public readonly List<BTNode> Nodes = new();
         
-        [NonSerialized]
-        public NodeState TreeState = NodeState.Inactive;
+        private readonly Dictionary<string, BTNode> _guid2Nodes = new();
         
-        public NodeState Update() {
-            if (TreeNodeData.EntryNode == null) {
-                return NodeState.Failure;
-            }
-            
-            if (TreeState is NodeState.Inactive or NodeState.Running) {
-                TreeState = TreeNodeData.EntryNode.Update();
-            }
-            else if (Settings.RestartWhenComplete) {
-                TreeNodeData.EntryNode.Abort();
-                TreeState = NodeState.Inactive;
-            }
-
-            return TreeState;
+        public void AddNode(BTNode node) {
+            Nodes.Add(node);
+            _guid2Nodes.Add(node.Guid, node);
         }
 
-        [OnDeserialized]
-        private void OnAfterDeserialize(StreamingContext context) {
-            TreeNodeData.GetNodes().ForEach(node => {
-                node.OnInit(Blackboard);
-            });
+        public void RemoveNode(BTNode node) {
+            if (!_guid2Nodes.ContainsKey(node.Guid)) {
+                return;
+            }
+
+            var toRemove = _guid2Nodes[node.Guid];
+            Nodes.Remove(toRemove);
+            _guid2Nodes.Remove(node.Guid);
         }
 
         /// <summary>
-        /// 反序列化后重建树的节点之间的连接关系
+        /// 节点替换，主要用于外部节点处理
         /// </summary>
-        public void RebuildTree() {
-            var treeNodes = TreeNodeData.GetNodes();
-            treeNodes.ForEach(RebindChild);
+        /// <param name="index">位于Nodes列表中的索引</param>
+        /// <param name="newNode">新的外部节点</param>
+        public void ReplaceNode(int index, BTNode newNode) {
+            if (index < 0 || index >= Nodes.Count) {
+                return;
+            }
+            
+            Nodes[index] = newNode;
+            _guid2Nodes[newNode.Guid] = newNode;
+        }
+
+        public BTNode GetNodeByGuid(string guid) {
+            return _guid2Nodes.ContainsKey(guid) ? _guid2Nodes[guid] : null;
         }
         
-        private void RebindChild(BTNode node) {
-            var childrenGuids = node.GetChildrenGuids();
-            foreach (var guid in childrenGuids) {
+        // TODO 其他序列化可能不会触发回调
+        [OnDeserialized]
+        private void OnAfterDeserialize(StreamingContext context) {
+            Nodes.ForEach(node => {
                 if (node is EntryNode entryNode) {
-                    entryNode.SetChild(TreeNodeData.GetNodeByGuid(guid));
-                    break;
+                    EntryNode = entryNode;
                 }
-                if (node is Decorator decorator) {
-                    decorator.SetChild(TreeNodeData.GetNodeByGuid(guid));
-                    break;
-                }
-                if (node is Composite composite) {
-                    composite.AddChild(TreeNodeData.GetNodeByGuid(guid));
-                }
-            }
+                _guid2Nodes.Add(node.Guid, node);
+            });
         }
     }
 }
-
-

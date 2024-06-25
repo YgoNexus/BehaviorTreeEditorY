@@ -11,20 +11,20 @@ namespace BTCore.Runtime.Decorators
 {
     public class Failure : Decorator
     {
-        protected override void OnStart() {
-        }
-
-        protected override NodeState OnUpdate() {
-            if (Child == null) {
-                return NodeState.Failure;
-            }
-
-            var nodeState = Child.Update();
-            return nodeState == NodeState.Success ? NodeState.Failure : nodeState;
-        }
-
         protected override void OnStop() {
-            
+            base.OnStop();
+        }
+
+        public override bool CanExecute() {
+            return State is NodeState.Inactive or NodeState.Running;
+        }
+
+        public override void OnChildExecute(int childIndex, NodeState nodeState) {
+            State = nodeState;
+        }
+
+        public override NodeState Decorate(NodeState state) {
+            return state == NodeState.Success ? NodeState.Failure : state;
         }
     }
 }

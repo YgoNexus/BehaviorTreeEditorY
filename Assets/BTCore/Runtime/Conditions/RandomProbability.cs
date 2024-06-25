@@ -13,11 +13,12 @@ namespace BTCore.Runtime.Conditions
 {
     public class RandomProbability : Condition
     {
-        public BindValue<int> Probability { get; set; } = new BindValue<int>();
+        public SharedValue<int> Probability { get; set; } = new();
 
         private Random _random;
         
         protected override void OnStart() {
+            base.OnStart();
             _random = new Random();
         }
 

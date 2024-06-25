@@ -24,8 +24,8 @@ namespace BTCore.Runtime
     {
         Inactive,
         Running,
-        Failure,
-        Success
+        Success,
+        Failure
     }
     
     public enum BTLogType
@@ -33,5 +33,13 @@ namespace BTCore.Runtime
         Debug,
         Warning,
         Error
+    }
+
+    public enum AbortType
+    {
+        None,
+        Self,
+        LowerPriority,
+        Both
     }
 }

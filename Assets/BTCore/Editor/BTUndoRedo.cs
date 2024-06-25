@@ -36,7 +36,7 @@ namespace BTCore.Editor
         
         public void Execute() {
             try {
-                var treeNodeData = JsonConvert.DeserializeObject<TreeNodeData>(_newData, BTDef.SerializerSettingsAuto);
+                var treeNodeData = JsonConvert.DeserializeObject<BTData>(_newData, BTDef.SerializerSettingsAuto);
                 _btView.ImportData(treeNodeData);
             }
             catch (Exception e) {
@@ -46,7 +46,7 @@ namespace BTCore.Editor
 
         public void Undo() {
             try {
-                var treeNodeData = JsonConvert.DeserializeObject<TreeNodeData>(_oldData, BTDef.SerializerSettingsAuto);
+                var treeNodeData = JsonConvert.DeserializeObject<BTData>(_oldData, BTDef.SerializerSettingsAuto);
                 _btView.ImportData(treeNodeData);
             }
             catch (Exception e) {

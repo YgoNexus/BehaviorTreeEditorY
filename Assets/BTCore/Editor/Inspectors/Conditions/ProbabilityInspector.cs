@@ -7,32 +7,28 @@
 //    Modified:  2023-10-16
 //============================================================
 
-using BTCore.Editor.Attributes;
 using BTCore.Runtime;
+using BTCore.Runtime.Attributes;
 using BTCore.Runtime.Conditions;
 using Sirenix.OdinInspector;
 
 namespace BTCore.Editor.Inspectors.Conditions
 {
-    [BTNode(typeof(RandomProbability))]
-    public class RandomProbabilityInspector : BTNodeInspector
+    [NodeInspector(typeof(RandomProbability))]
+    public class RandomProbabilityInspector : BTNodeInspector<RandomProbability>
     {
         [ShowInInspector]
         [LabelText("Probability(?)")]
         [LabelWidth(100)]
         [OnValueChanged("OnFieldValueChanged")]
         [PropertyTooltip("概率范围0 ~ 100")]
-        private BVInspector<int> _probability = new BVInspector<int>();
+        private SharedValueInspector<int> _probability = new SharedValueInspector<int>();
 
         private RandomProbability _probabilityData;
         
-        public override void ImportData(BTNode data) {
-            if (data is not RandomProbability probability) {
-                return;
-            }
-
-            _probabilityData = probability;
-            _probability.ImportData(_probabilityData.Probability);
+        protected override void OnImportData(RandomProbability data) {
+            _probabilityData = data;
+            _probability.ImportData(data.Probability);
         }
 
         public override BTNode ExportData() {
@@ -40,15 +36,11 @@ namespace BTCore.Editor.Inspectors.Conditions
         }
         
         protected override void OnFieldValueChanged() {
-            if (_probabilityData == null) {
-                return;
-            }
-
             _probabilityData.Probability = _probability.ExportData();
         }
 
         public override void Reset() {
-            _probability = new BVInspector<int>();
+            _probability = new SharedValueInspector<int>();
             _probabilityData = null;
         }
     }

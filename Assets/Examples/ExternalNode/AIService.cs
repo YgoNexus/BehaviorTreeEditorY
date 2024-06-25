@@ -38,19 +38,18 @@ namespace Examples.ExternalNode
         private IExternalNode CreateExternalNode(string typeName) => nodeFactory.CrateNode(typeName);
         
         public IAIAgent CreateAIAgent(string strategy) {
-            var btData = (BTData) null;
+            var btTree = (BTree) null;
             try {
                 // 对于含有外部节点配置的BT数据，先替换外部节点，再重建树的连接关系
-                btData = JsonConvert.DeserializeObject<BTData>(strategy, BTDef.SerializerSettingsAuto);
-                ReplaceWithExternalNodes(btData);
-                btData?.RebuildTree();
+                btTree = JsonConvert.DeserializeObject<BTree>(strategy, BTDef.SerializerSettingsAuto);
+                ReplaceWithExternalNodes(btTree);
             }
             catch (Exception ex) {
                 BTLogger.Error($"BT data deserialize failed! \nex: {ex}");
                 return null;
             }
 
-            var aiAgent = new AIAgent(btData);
+            var aiAgent = new AIAgent(btTree);
             return aiAgent;
         }
 
@@ -59,12 +58,12 @@ namespace Examples.ExternalNode
         /// </summary>
         /// <param name="btData"></param>
         /// <returns></returns>
-        private void ReplaceWithExternalNodes(BTData btData) {
-            if (btData == null) {
+        private void ReplaceWithExternalNodes(BTree btTree) {
+            if (btTree == null) {
                 return;
             }
             
-            var nodes = btData.TreeNodeData.GetNodes();
+            var nodes = btTree.BTData.Nodes;
             for (var i = 0; i < nodes.Count; i++) {
                 var node = nodes[i];
                 if (node is not IExternalNode externalNode) {
@@ -85,8 +84,7 @@ namespace Examples.ExternalNode
                 }
                 
                 btNode.Guid = node.Guid;
-                btNode.OnInit(btData.Blackboard);
-                btData.TreeNodeData.ReplaceNode(i, btNode);
+                btTree.BTData.ReplaceNode(i, btNode);
             }
         }
     }

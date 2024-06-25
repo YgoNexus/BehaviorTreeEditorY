@@ -13,19 +13,19 @@ namespace Examples.ExternalNode
 {
     public interface IAIAgent
     {
-        void Tick();
+        void Tick(int deltaTime);
     }
     
     public class AIAgent : IAIAgent
     {
-        private readonly BTData _btData;
+        private readonly BTree _btTree;
         
-        public AIAgent(BTData btData) {
-            _btData = btData;
+        public AIAgent(BTree btTree) {
+            _btTree = btTree;
         }
         
-        public void Tick() {
-            _btData?.Update();
+        public void Tick(int deltaTime) {
+            _btTree?.Update();
         }
     }
 }

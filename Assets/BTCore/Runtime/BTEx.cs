@@ -18,14 +18,8 @@ namespace BTCore.Runtime
         public static List<string> GetChildrenGuids(this BTNode parent) {
             var children = new List<string>();
             switch (parent) {
-                case Composite composite: {
-                    children.AddRange(composite.ChildrenGuids);
-                    break;
-                }
-                case Decorator decorator: {
-                    if (!string.IsNullOrEmpty(decorator.ChildGuid)) {
-                        children.Add(decorator.ChildGuid);   
-                    }
+                case ParentNode parentNode: {
+                    children.AddRange(parentNode.ChildrenGuids);
                     break;
                 }
                 case EntryNode entryNode: {

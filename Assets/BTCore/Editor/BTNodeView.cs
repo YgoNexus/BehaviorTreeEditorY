@@ -20,7 +20,7 @@ using Action = BTCore.Runtime.Actions.Action;
 
 namespace BTCore.Editor
 {
-    public class BTNodeView : Node, IDataSerializableEditor<BTNode>
+    public class BTNodeView : Node, IDataSerializable<BTNode>
     {
         public Action<BTNodeView> OnNodeSelected;
 
@@ -29,7 +29,7 @@ namespace BTCore.Editor
         public Port Output { get; private set; }
 
         private readonly BTView _btView;
-        private NodePos _recordPos;
+        private NodePosition _recordPosition;
         private string _oldData;
 
         public BTNodeView NodeParent {
@@ -157,7 +157,7 @@ namespace BTCore.Editor
             
             _oldData = null;
             OnNodeSelected?.Invoke(this);
-            _recordPos = new NodePos(Node.PosX, Node.PosY);
+            _recordPosition = new NodePosition(Node.PosX, Node.PosY);
         }
 
         /// <summary>
@@ -166,8 +166,8 @@ namespace BTCore.Editor
         public override void OnUnselected() {
             base.OnUnselected();
 
-            var curPos = new NodePos(Node.PosX, Node.PosY);
-            if (!_recordPos.IsChanged(curPos) || string.IsNullOrEmpty(_oldData)) {
+            var curPos = new NodePosition(Node.PosX, Node.PosY);
+            if (!_recordPosition.IsChanged(curPos) || string.IsNullOrEmpty(_oldData)) {
                 return;
             }
             
@@ -233,17 +233,17 @@ namespace BTCore.Editor
             }
         }
         
-        private struct NodePos
+        private readonly struct NodePosition
         {
             private readonly float _x;
             private readonly float _y;
 
-            public NodePos(float x, float y) {
+            public NodePosition(float x, float y) {
                 _x = x;
                 _y = y;
             }
 
-            public bool IsChanged(NodePos other) {
+            public bool IsChanged(NodePosition other) {
                 return Mathf.Abs(_x - other._x) > 0.1f || Mathf.Abs(_y - other._y) > 0.1f;
             }
         }

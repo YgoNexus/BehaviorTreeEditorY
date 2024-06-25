@@ -15,52 +15,57 @@ namespace BTCore.Runtime.Composites
 {
     public class Parallel : Composite
     {
-        private readonly List<NodeState> _childrenState = new List<NodeState>();
+        private List<NodeState> _executionState = new();
 
         protected override void OnStart() {
-            childIndex = 0;
-            _childrenState.Clear();
-            Children.ForEach(_ => _childrenState.Add(NodeState.Inactive));
-        }
-
-        protected override NodeState OnUpdate() {
-            var childrenComplete = true;
-            for (var i = 0; i < _childrenState.Count; i++) {
-                var nodeState = _childrenState[i];
-                
-                switch (nodeState) {
-                    case NodeState.Inactive:
-                    case NodeState.Running: {
-                        _childrenState[i] = Children[i].Update();
-                        childrenComplete = false;
-                        break;
-                    }
-                    case NodeState.Failure: {
-                        AbortRunningChildren();
-                        return NodeState.Failure;
-                    }
-                    case NodeState.Success:
-                        continue;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Unknown node state:{nodeState}");
-                }
-            }
-
-            return childrenComplete ? NodeState.Success : NodeState.Running;
+            base.OnStart();
+            
+            Index = 0;
+            _executionState = Children.ConvertAll(x => NodeState.Inactive);
         }
 
         protected override void OnStop() {
-            
+
         }
 
-        private void AbortRunningChildren() {
-            for (var i = 0; i < _childrenState.Count; i++) {
-                if (_childrenState[i] != NodeState.Running) {
-                    continue;
+        public override void OnChildStart() {
+            _executionState[Index++] = NodeState.Running;
+        }
+
+        public override void OnChildExecute(int childIndex, NodeState nodeState) {
+            _executionState[childIndex] = nodeState;
+        }
+
+        public override bool CanExecute() {
+            return Index < Children.Count;
+        }
+
+        public override void OnConditionalAbort(int index) {
+            Index = 0;
+            _executionState.ForEach(x => x = NodeState.Inactive);
+        }
+
+        /// <summary>
+        /// 并行节点状态是由多个子节点状态决定的
+        /// </summary>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public override NodeState OverrideState(NodeState state) {
+            var childRenComplete = true;
+            for (var i = 0; i < _executionState.Count; i++) {
+                if (_executionState[i] == NodeState.Running) {
+                    childRenComplete = false;
                 }
-                
-                Children[i].Abort();
+                else if (_executionState[i] == NodeState.Failure) {
+                    return State = NodeState.Failure;
+                }
             }
+
+            return State = childRenComplete ? NodeState.Success : NodeState.Running;
+        }
+
+        public override bool CanRunParallel() {
+            return true;
         }
     }
 }

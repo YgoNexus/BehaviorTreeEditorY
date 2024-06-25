@@ -20,6 +20,7 @@ namespace Examples.ExternalNode
         private string _name;
         
         protected override void OnStart() {
+            base.OnStart();
             _name = Properties["Name"];
         }
 

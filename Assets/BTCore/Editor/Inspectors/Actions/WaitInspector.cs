@@ -8,15 +8,15 @@
 //============================================================
 
 
-using BTCore.Editor.Attributes;
 using BTCore.Runtime;
 using BTCore.Runtime.Actions;
+using BTCore.Runtime.Attributes;
 using Sirenix.OdinInspector;
 
 namespace BTCore.Editor.Inspectors.Actions
 {
-    [BTNode(typeof(Wait))]
-    public class WaitInspector : BTNodeInspector
+    [NodeInspector(typeof(Wait))]
+    public class WaitInspector : BTNodeInspector<Wait>
     {
         [ShowInInspector]
         [LabelText("Duration(ms)")]
@@ -26,13 +26,9 @@ namespace BTCore.Editor.Inspectors.Actions
         
         private Wait _waitData;
 
-        public override void ImportData(BTNode data) {
-            if (data is not Wait waitData) {
-                return;
-            }
-
-            _waitData = waitData;
-            _duration = waitData.Duration;
+        protected override void OnImportData(Wait data) {
+            _waitData = data;
+            _duration = data.Duration;
         }
 
         public override BTNode ExportData() {
@@ -40,10 +36,6 @@ namespace BTCore.Editor.Inspectors.Actions
         }
 
         protected override void OnFieldValueChanged() {
-            if (_waitData == null) {
-                return;
-            }
-            
             _waitData.Duration = _duration;
         }
 

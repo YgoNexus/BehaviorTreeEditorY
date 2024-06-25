@@ -18,6 +18,7 @@ namespace BTCore.Runtime.Actions
         private DateTime _startTime;
         
         protected override void OnStart() {
+            base.OnStart();
             _startTime = DateTime.UtcNow;
         }
 

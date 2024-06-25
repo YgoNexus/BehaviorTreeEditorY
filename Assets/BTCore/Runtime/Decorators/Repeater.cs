@@ -16,29 +16,31 @@ namespace BTCore.Runtime.Decorators
         private int _counter = 0;
         
         protected override void OnStart() {
+            base.OnStart();
             _counter = 0;
         }
 
-        protected override NodeState OnUpdate() {
-            if (Child == null) {
-                return NodeState.Failure;
-            }
+        protected override void OnStop() {
             
-            if (RepeatCount < 0) {
-                Child.Update();
-                return NodeState.Running;
+        }
+
+        public override void OnChildExecute(int childIndex, NodeState nodeState) {
+            // 一直运行状态
+            if (RepeatCount == -1) {
+                State = NodeState.Running;
+                return;
             }
 
             if (_counter >= RepeatCount) {
-                return NodeState.Success;
+                State = NodeState.Success;
             }
 
             _counter++;
-            var nodeState = Child.Update();
-            return nodeState != NodeState.Success ? nodeState : NodeState.Running;
+            State = nodeState != NodeState.Success ? nodeState : NodeState.Running;
         }
 
-        protected override void OnStop() {
+        public override bool CanExecute() {
+            return RepeatCount == -1 || _counter < RepeatCount;
         }
     }
 }

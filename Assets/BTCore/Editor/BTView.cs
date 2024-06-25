@@ -21,11 +21,11 @@ using UnityEngine.UIElements;
 
 namespace BTCore.Editor
 {
-    public class BTView : GraphView, IDataSerializableEditor<TreeNodeData>
+    public class BTView : GraphView, IDataSerializable<BTData>
     {
         public new class UxmlFactory : UxmlFactory<BTView, UxmlTraits> { }
 
-        private TreeNodeData _treeNodeData;
+        private BTData _btData;
 
         public Action<BTNodeView> OnNodeSelected;
 
@@ -65,7 +65,7 @@ namespace BTCore.Editor
                 }
                 
                 ClearSelection();
-                var oldData = JsonConvert.SerializeObject(_treeNodeData, BTDef.SerializerSettingsAll);
+                var oldData = JsonConvert.SerializeObject(_btData, BTDef.SerializerSettingsAll);
                 
                 // 找到所有复制的节点
                 var nodesToCopy = new List<BTNodeView>();
@@ -111,22 +111,22 @@ namespace BTCore.Editor
                     AddChildView(newParent, newChild);
                 }
                 
-                var newData = JsonConvert.SerializeObject(_treeNodeData, BTDef.SerializerSettingsAll);
+                var newData = JsonConvert.SerializeObject(_btData, BTDef.SerializerSettingsAll);
                 var command = new NodeDataCommand(this, oldData, newData);
                 BTEditorWindow.Instance.AddCommand(command);
             };
         }
         
-        public void ImportData(TreeNodeData treeNodeData) {
-            _treeNodeData = treeNodeData;
+        public void ImportData(BTData btData) {
+            _btData = btData;
             
             ClearGraphs();
             BTEditorWindow.Instance.ClearNodeSelectedInspector();
             
             // 默认没有会创建对应的入口节点
-            _treeNodeData.EntryNode ??= CreateNode<EntryNode>(_entryPos) as EntryNode;
+            _btData.EntryNode ??= CreateNode<EntryNode>(_entryPos) as EntryNode;
 
-            var treeNodes = treeNodeData.GetNodes();
+            var treeNodes = btData.Nodes;
             // 根据保存的数据创建对应节点
             treeNodes.ForEach(node => CreateNodeView(node));
             // 根据节点数据关系创建连线
@@ -153,8 +153,8 @@ namespace BTCore.Editor
             return GetNodeByGuid(guid) as BTNodeView;
         }
 
-        public TreeNodeData ExportData() {
-            return _treeNodeData;
+        public BTData ExportData() {
+            return _btData;
         }
 
         /// <summary>
@@ -170,7 +170,7 @@ namespace BTCore.Editor
                 return graphViewChange;
             }
 
-            var oldData = JsonConvert.SerializeObject(_treeNodeData, BTDef.SerializerSettingsAll);
+            var oldData = JsonConvert.SerializeObject(_btData, BTDef.SerializerSettingsAll);
             var toRemove = graphViewChange.elementsToRemove;
             
             toRemove?.ForEach(ele => {
@@ -182,9 +182,9 @@ namespace BTCore.Editor
                 }
                 // 节点被删除
                 if (ele is BTNodeView nodeView) {
-                    var foundNode = _treeNodeData.GetNodeByGuid(nodeView.Node.Guid);
+                    var foundNode = _btData.GetNodeByGuid(nodeView.Node.Guid);
                     if (foundNode != null) {
-                        _treeNodeData.RemoveNode(foundNode);
+                        _btData.RemoveNode(foundNode);
                     }
                 }
             });
@@ -199,7 +199,7 @@ namespace BTCore.Editor
 
             // 节点被删除 or 连线被删除 or 连线被创建 -> 都需要创建记录数据
             if (toRemove is {Count: > 0} || edgesToCreate is {Count: > 0}) {
-                var newData = JsonConvert.SerializeObject(_treeNodeData, BTDef.SerializerSettingsAll);
+                var newData = JsonConvert.SerializeObject(_btData, BTDef.SerializerSettingsAll);
                 var command = new NodeDataCommand(this, oldData, newData);
                 BTEditorWindow.Instance.AddCommand(command);
             }
@@ -222,7 +222,7 @@ namespace BTCore.Editor
 
         public void CreteNode(Type type, Vector2 pos, BTNodeView sourceNode, bool isAsParent) {
             var nodeView = (BTNodeView) null;
-            var oldData = JsonConvert.SerializeObject(_treeNodeData, BTDef.SerializerSettingsAll);
+            var oldData = JsonConvert.SerializeObject(_btData, BTDef.SerializerSettingsAll);
             var node = CreateNode(type, pos);
             
             // sourceNode作为子节点
@@ -251,7 +251,7 @@ namespace BTCore.Editor
                 }
             }
             
-            var newData = JsonConvert.SerializeObject(_treeNodeData, BTDef.SerializerSettingsAll);
+            var newData = JsonConvert.SerializeObject(_btData, BTDef.SerializerSettingsAll);
             var command = new NodeDataCommand(this, oldData, newData);
             BTEditorWindow.Instance.AddCommand(command);
             
@@ -274,7 +274,7 @@ namespace BTCore.Editor
             node.PosX = pos.x;
             node.PosY = pos.y;
             
-            _treeNodeData.AddNode(node);
+            _btData.AddNode(node);
             return node;
         }
         
@@ -292,6 +292,7 @@ namespace BTCore.Editor
             return nodeView;
         }
 
+        // TODO 这里数据部分更新有点问题待处理
         private void AddChildView(BTNodeView parentView, BTNodeView childView) {
             // 父节点输出端口为单连接时，需要先删除已存在的连线
             if (parentView.Output.capacity == Port.Capacity.Single) {
@@ -328,12 +329,8 @@ namespace BTCore.Editor
 
         private void AddChild(BTNode parentNode, BTNode childNode) {
             switch (parentNode) {
-                case Composite composite: {
-                    composite.ChildrenGuids.Add(childNode.Guid);
-                    break;
-                }
-                case Decorator decorator: {
-                    decorator.ChildGuid = childNode.Guid;
+                case ParentNode pNode: {
+                    pNode.ChildrenGuids.Add(childNode.Guid);
                     break;
                 }
                 case EntryNode entryNode: {
@@ -345,12 +342,8 @@ namespace BTCore.Editor
 
         private void RemoveChild(BTNode parentNode, BTNode childNode) {
             switch (parentNode) {
-                case Composite composite: {
-                    composite.ChildrenGuids.Remove(childNode.Guid);
-                    break;
-                }
-                case Decorator decorator: {
-                    decorator.ChildGuid = null;
+                case ParentNode pNode: {
+                    pNode.ChildrenGuids.Remove(childNode.Guid);
                     break;
                 }
                 case EntryNode entryNode: {

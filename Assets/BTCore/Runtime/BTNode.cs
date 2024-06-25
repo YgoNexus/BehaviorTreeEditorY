@@ -13,65 +13,57 @@ using BTCore.Runtime.Blackboards;
 
 namespace BTCore.Runtime
 {
-    public abstract class BTNode : IBTNode
+    public abstract class BTNode : INode
     {
         public string Name { get; set; }
         public string Guid { get; set; }
+#if UNITY_EDITOR
         public float PosX { get; set; }
         public float PosY { get; set; }
+#endif        
         
-        [NonSerialized]
         public NodeState State = NodeState.Inactive;
-        
+
         protected Blackboard Blackboard;
-
-        private bool _started;
         
-        public NodeState Update() {
-            if (!_started) {
-                OnStart();
-                _started = true;
-            }
+        public void Init(BTree bTree) {
+            Blackboard = bTree.Blackboard;
             
-            State = OnUpdate();
-
-            if (State != NodeState.Running) {
-                OnStop();
-                _started = false;
-            }
-
-            return State;
-        }
-
-        
-        public virtual void OnInit(Blackboard blackboard) {
-            Blackboard = blackboard;
-            
-            // 这里为了方便对Node里面的BindValue统一进行了赋值处理，每个节点只会在初始化调用一次
-            // 觉得反射影响运行时性能的，可以覆盖重写, 手动赋值
-            foreach (var bindValueFieldInfo in GetType().GetFields()) {
-                if (bindValueFieldInfo.FieldType.IsSubclassOf(typeof(BindValue))) {
-                    var bindValue = bindValueFieldInfo.GetValue(this) as BindValue;
-                    if (bindValue == null) {
+            foreach (var propertyInfo in GetType().GetProperties()) {
+                if (propertyInfo.PropertyType.IsSubclassOf(typeof(SharedValue))) {
+                    if (propertyInfo.GetValue(this) is not SharedValue sharedValue) {
                         continue;
                     }
 
-                    var fieldInfo = bindValue.GetType().GetField("Blackboard");
-                    fieldInfo?.SetValue(bindValue, blackboard);
+                    var property = sharedValue.GetType().GetProperty("Blackboard", BindingFlags.Instance | BindingFlags.NonPublic);
+                    property?.SetValue(sharedValue, bTree.Blackboard);
                 }
             }   
         }
+        
+        public void Start() {
+            OnStart();
+        }
 
-        public void Abort() {
-            BTUtil.TravelNode(this, node => {
-                node._started = false;
-                node.State = NodeState.Inactive;
-                node.OnStop();
-            });
+        public NodeState Update() {
+            return State = OnUpdate();
+        }
+
+        public void Stop() {
+            OnStop();
+        }
+
+        public void Pause(bool isPause) {
+            OnPause(isPause);
         }
         
-        protected abstract void OnStart();
-        protected abstract NodeState OnUpdate();
-        protected abstract void OnStop();
+        protected virtual void OnStart() { State = NodeState.Running; }
+        protected virtual NodeState OnUpdate() { return NodeState.Failure; }
+        protected virtual void OnStop() { }
+        protected virtual void OnPause(bool isPause) { }
+
+        public override string ToString() {
+            return $"Node name: {Name} type: {GetType()}";
+        }
     }
 }

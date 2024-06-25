@@ -5,7 +5,6 @@ using BTCore.Runtime.Blackboards;
 using BTCore.Runtime.Unity;
 using Newtonsoft.Json;
 using UnityEditor;
-using UnityEditor.Callbacks;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -15,7 +14,7 @@ namespace BTCore.Editor
     public class BTEditorWindow : EditorWindow
     {
         public static BTEditorWindow Instance;
-        public BTView BTView { get; private set; }
+        private BTView _btView { get; set; }
         
         private NodeInspectorView _nodeInspectorView;
         private ToolbarMenu _toolbarMenu;
@@ -27,6 +26,7 @@ namespace BTCore.Editor
         private BTUndoRedo _undoRedo;
         
         public Blackboard Blackboard => _blackboardView.ExportData();
+        public BTView BTView => _btView;
         
         [MenuItem("Tools/BehaviorTree/BTEditorWindow")]
         public static void OpenWindow()
@@ -36,31 +36,6 @@ namespace BTCore.Editor
             wnd.minSize = new Vector2(800, 600);
         }
 
-        [OnOpenAsset]
-        public static bool OnOpenAsset(int instanceID, int line) {
-            var assetPath = AssetDatabase.GetAssetPath(instanceID);
-            if (!assetPath.StartsWith(BTEditorDef.DataDir) || !assetPath.EndsWith(BTEditorDef.DataExt)) {
-                return false;
-            }
-
-            var btData = (BTData) null;
-            try {
-                var json = File.ReadAllText(assetPath);
-                btData = JsonConvert.DeserializeObject<BTData>(json, BTDef.SerializerSettingsAuto);
-            }
-            catch (Exception e) {
-                Debug.LogError($"打开BT编辑器失败，请检查对应资源文件! 路径: {assetPath} ex: {e}");
-                return false;
-            }
-
-            var wnd = GetWindow<BTEditorWindow>();
-            wnd.titleContent = new GUIContent("BTEditorWindow");
-            wnd.minSize = new Vector2(800, 600);
-            wnd.SelectNewTree(btData);
-            
-            return true;
-        }
-        
         public void CreateGUI() {
             Instance = this;
 
@@ -71,7 +46,7 @@ namespace BTCore.Editor
             var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(BTEditorDef.BTEditorWindowUxmlPath);
             visualTree.CloneTree(root);
 
-            BTView = root.Q<BTView>();
+            _btView = root.Q<BTView>();
             _nodeInspectorView = root.Q<NodeInspectorView>();
             _toolbarMenu = root.Q<ToolbarMenu>();
             _blackboardView = root.Q<BlackboardView>();
@@ -88,15 +63,13 @@ namespace BTCore.Editor
             
             _toolbarMenu.RegisterCallback<MouseEnterEvent>(OnEnterToolbarMenu);
             
-            _blackboardView.OnKeyListChanged = OnBlackboardKeyChanged;
-            BTView.OnNodeSelected = OnNodeSelected;
+            _blackboardView.OnValueListChanged = OnBlackboardValueChanged;
+            _btView.OnNodeSelected = OnNodeSelected;
             
             _undoRedo = new BTUndoRedo();
-            SelectNewTree(new BTData());
+            SelectNewTree(new BTree());
 
-            if (Application.isPlaying) {
-                OnSelectionChange();
-            }
+            OnSelectionChange();
         }
 
         private void OnUndo() {
@@ -119,7 +92,7 @@ namespace BTCore.Editor
             _redoButton.SetEnabled(_undoRedo.CanRedo);
         }
         
-        private void OnBlackboardKeyChanged() {
+        private void OnBlackboardValueChanged() {
             _nodeInspectorView.UpdateNodeBindValues();
         }
 
@@ -136,10 +109,10 @@ namespace BTCore.Editor
             foreach (var filePath in Directory.GetFiles(BTEditorDef.DataDir, "*.json")) {
                 var fileName = Path.GetFileName(filePath);
                 _toolbarMenu.menu.AppendAction($"{fileName}", _ => {
-                    var btData = (BTData) null;
+                    var btData = (BTree) null;
                     try {
                         var json = File.ReadAllText(filePath);
-                        btData = JsonConvert.DeserializeObject<BTData>(json, BTDef.SerializerSettingsAuto);
+                        btData = JsonConvert.DeserializeObject<BTree>(json, BTDef.SerializerSettingsAuto);
                     }
                     catch (Exception ex) {
                         Debug.LogError($"反序列BT数据失败，path: {filePath} ex: {ex}");
@@ -154,7 +127,7 @@ namespace BTCore.Editor
             
             // 保存当前行为树配置数据
             _toolbarMenu.menu.AppendAction("Save", _ => {
-                var treeNodeData = BTView.ExportData();
+                var treeNodeData = _btView.ExportData();
                 
                 // 入口子节点为空
                 if (string.IsNullOrEmpty(treeNodeData.EntryNode.ChildGuid)) {
@@ -169,8 +142,8 @@ namespace BTCore.Editor
                 }
 
                 try {
-                    var btData = new BTData {
-                        TreeNodeData = BTView.ExportData(),
+                    var btData = new BTree {
+                        BTData = _btView.ExportData(),
                         Blackboard = Blackboard
                     };
                     var json = JsonConvert.SerializeObject(btData, BTDef.SerializerSettingsAll);
@@ -190,7 +163,7 @@ namespace BTCore.Editor
 
         private void OnInspectorUpdate() {
             if (Application.isPlaying) {
-                BTView.UpdateNodesStyle();
+                _btView.UpdateNodesStyle();
             }
         }
 
@@ -204,22 +177,22 @@ namespace BTCore.Editor
 
         private void OnPlayModeStateChanged(PlayModeStateChange stateChange) {
             if (stateChange == PlayModeStateChange.ExitingPlayMode) {
-                SelectNewTree(new BTData());
+                SelectNewTree(new BTree());
             }
         }
 
         private void OnSelectionChange() {
-            if (BTView == null) {
+            if (_btView == null) {
                 return;
             }
 
-            var btData = (BTData) null;
+            var btData = (BTree) null;
             
             // 1. 优先判断是否选中运行时的BT
             if (Selection.activeGameObject != null) {
                 var btRunner = Selection.activeGameObject.GetComponent<BehaviorTree>();
-                if (btRunner != null && btRunner.BTData != null) {
-                    btData = btRunner.BTData;
+                if (btRunner != null && btRunner.bTree != null) {
+                    btData = btRunner.bTree;
                 }
             }
             
@@ -227,13 +200,13 @@ namespace BTCore.Editor
             if (btData == null && Selection.activeObject != null) {
                 var path = AssetDatabase.GetAssetPath(Selection.activeObject);
                 if (!path.StartsWith(BTEditorDef.DataDir) || !path.EndsWith(BTEditorDef.DataExt)) {
-                    SelectNewTree(new BTData());
+                    SelectNewTree(new BTree());
                     return;
                 }
             
                 try {
                     var json = File.ReadAllText(path);
-                    btData = JsonConvert.DeserializeObject<BTData>(json, BTDef.SerializerSettingsAuto);
+                    btData = JsonConvert.DeserializeObject<BTree>(json, BTDef.SerializerSettingsAuto);
                 }
                 catch (Exception e) {
                     ShowNotification("导入BT数据失败");
@@ -241,15 +214,15 @@ namespace BTCore.Editor
                 }
             }
             
-            SelectNewTree(btData ?? new BTData());
+            SelectNewTree(btData ?? new BTree());
         }
 
         public void ShowNotification(string message, double fadeoutWait = 4.0) {
             ShowNotification(new GUIContent(message), fadeoutWait);
         }
         
-        public void SelectNewTree(BTData btData) {
-            if (BTView == null) {
+        public void SelectNewTree(BTree bTree) {
+            if (_btView == null) {
                 return;
             }
             
@@ -259,8 +232,8 @@ namespace BTCore.Editor
                 UpdateUndoRedoButtonState();
             }
 
-            BTView.ImportData(btData.TreeNodeData);
-            _blackboardView.ImportData(btData.Blackboard);
+            _btView.ImportData(bTree.BTData);
+            _blackboardView.ImportData(bTree.Blackboard);
         }
     }
 }

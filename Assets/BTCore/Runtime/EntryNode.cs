@@ -24,7 +24,7 @@ namespace BTCore.Runtime
         public BTNode GetChild() => _child;
         
         protected override void OnStart() {
-            
+            base.OnStart();
         }
 
         protected override NodeState OnUpdate() {

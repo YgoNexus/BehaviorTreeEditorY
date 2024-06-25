@@ -11,17 +11,11 @@ using System;
 
 namespace BTCore.Runtime.Decorators
 {
-    public abstract class Decorator : BTNode
+    public abstract class Decorator : ParentNode
     {
-        protected BTNode Child;
-
-        public string ChildGuid { get; set; }
-        
-        public void SetChild(BTNode node) {
-            Child = node;
+        public virtual NodeState Decorate(NodeState state) {
+            return state;
         }
-
-        public BTNode GetChild() => Child;
     }
 }
 

@@ -7,15 +7,16 @@
 //    Modified:  2023-10-16
 //============================================================
 
-using BTCore.Editor.Attributes;
 using BTCore.Runtime;
+using BTCore.Runtime.Attributes;
+using BTCore.Runtime.Composites;
 using BTCore.Runtime.Decorators;
 using Sirenix.OdinInspector;
 
 namespace BTCore.Editor.Inspectors.Decorators
 {
-    [BTNode(typeof(Repeater))]
-    public class RepeaterInspector : BTNodeInspector
+    [NodeInspector(typeof(Repeater))]
+    public class RepeaterInspector : BTNodeInspector<Repeater>
     {
         [ShowInInspector]
         [LabelText("Repeat Count(?)")]
@@ -26,13 +27,9 @@ namespace BTCore.Editor.Inspectors.Decorators
 
         private Repeater _repeater;
         
-        public override void ImportData(BTNode data) {
-            if (data is not Repeater repeater) {
-                return;
-            }
-
-            _repeater = repeater;
-            _count = repeater.RepeatCount;
+        protected override void OnImportData(Repeater data) {
+            _repeater = data;
+            _count = data.RepeatCount;
         }
 
         public override BTNode ExportData() {
@@ -43,7 +40,7 @@ namespace BTCore.Editor.Inspectors.Decorators
             if (_repeater == null) {
                 return;
             }
-
+            
             _repeater.RepeatCount = _count;
         }
 

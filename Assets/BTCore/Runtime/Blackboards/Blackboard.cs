@@ -13,39 +13,39 @@ namespace BTCore.Runtime.Blackboards
 {
     public class Blackboard
     {
-        public List<BlackboardKey> Keys { get; set; } = new List<BlackboardKey>();
+        public List<BlackboardValue> Values { get; set; } = new();
 
-        public BlackboardKey<T> Find<T>(string keyName) {
-            var foundKey = Keys.Find(key => key.Name == keyName);
+        public BlackboardValue<T> Find<T>(string name) {
+            var foundKey = Values.Find(key => key.Name == name);
 
             if (foundKey == null) {
-                BTLogger.Error($"Find blackboard key failed, keyName: {keyName}");
+                BTLogger.Error($"Find blackboard value failed, value Name: {name}");
                 return null;
             }
 
-            if (foundKey is not BlackboardKey<T> blackboardKey) {
-                BTLogger.Error($"Find blackboard key failed, expected: {typeof(T)} got: {foundKey.Type}");
+            if (foundKey is not BlackboardValue<T> blackboardValue) {
+                BTLogger.Error($"Find blackboard value failed, expected: {typeof(T)} got: {foundKey.Type}");
                 return null;
             }
 
-            return blackboardKey;
+            return blackboardValue;
         }
 
-        public T GetValue<T>(string keyName) {
-            var blackboardKey = Find<T>(keyName);
-            return blackboardKey != null ? blackboardKey.Value : default;
+        public T GetValue<T>(string name) {
+            var blackboardValue = Find<T>(name);
+            return blackboardValue != null ? blackboardValue.Value : default;
         }
 
-        public void SetValue<T>(string keyName, T value) {
-            var foundKey = Find<T>(keyName);
-            if (foundKey != null) {
-                foundKey.Value = value;
+        public void SetValue<T>(string name, T value) {
+            var foundValue = Find<T>(name);
+            if (foundValue != null) {
+                foundValue.Value = value;
                 return;
             }
 
-            var blackboardKey = new BlackboardKey<T>(keyName);
+            var blackboardKey = new BlackboardValue<T>(name);
             blackboardKey.Value = value;
-            Keys.Add(blackboardKey);
+            Values.Add(blackboardKey);
         }
     }
 }

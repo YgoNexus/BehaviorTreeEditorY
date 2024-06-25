@@ -14,28 +14,26 @@ namespace BTCore.Runtime.Decorators
     public class Inverter : Decorator
     {
         protected override void OnStart() {
-        }
-
-        protected override NodeState OnUpdate() {
-            if (Child == null) {
-                return NodeState.Failure;
-            }
-
-            var nodeState = Child.Update();
-            switch (nodeState) {
-                case NodeState.Inactive:
-                case NodeState.Running:
-                    return nodeState;
-                case NodeState.Failure:
-                    return NodeState.Success;
-                case NodeState.Success:
-                    return NodeState.Failure;
-                default:
-                    throw new ArgumentOutOfRangeException($"Unknown node state:{nodeState}");
-            }
+            base.OnStart();
         }
 
         protected override void OnStop() {
+        }
+
+        public override void OnChildExecute(int childIndex, NodeState nodeState) {
+            State = nodeState;
+        }
+
+        public override bool CanExecute() {
+            return State is NodeState.Inactive or NodeState.Running;
+        }
+
+        public override NodeState Decorate(NodeState state) {
+            return state switch {
+                NodeState.Failure => NodeState.Success,
+                NodeState.Success => NodeState.Failure,
+                _ => state
+            };
         }
     }
 }

@@ -15,32 +15,28 @@ namespace BTCore.Runtime.Composites
     public class Selector : Composite
     {
         protected override void OnStart() {
-            childIndex = 0;
-        }
-
-        protected override NodeState OnUpdate() {
-            for (var i = childIndex; i < Children.Count; i++) {
-                childIndex = i;
-                var nodeState = Children[i].Update();
-                
-                switch (nodeState) {
-                    case NodeState.Inactive:
-                    case NodeState.Running:
-                        return NodeState.Running;
-                    case NodeState.Failure:
-                        continue;
-                    case NodeState.Success:
-                        return NodeState.Success;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Unknown node state:{nodeState}");
-                }
-            }
-
-            return NodeState.Failure;
+            base.OnStart();
+            Index = 0;
         }
 
         protected override void OnStop() {
             
+        }
+
+        public override void OnChildExecute(int childIndex, NodeState nodeState) {
+            State = nodeState switch {
+                NodeState.Failure => ++Index >= Children.Count ? NodeState.Failure : NodeState.Running,
+                _ => nodeState
+            };
+        }
+
+        public override bool CanExecute() {
+            return Index < Children.Count && State != NodeState.Success;
+        }
+        
+        public override void OnConditionalAbort(int index) {
+            Index = index;
+            State = NodeState.Inactive;
         }
     }
 }

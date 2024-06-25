@@ -15,31 +15,29 @@ namespace BTCore.Runtime.Composites
     public class Sequence : Composite
     {
         protected override void OnStart() {
-            childIndex = 0;
-        }
-
-        protected override NodeState OnUpdate() {
-            for (var i = childIndex; i < Children.Count; i++) {
-                childIndex = i;
-                var nodeState = Children[i].Update();
-                
-                switch (nodeState) {
-                    case NodeState.Inactive:
-                    case NodeState.Running:
-                        return NodeState.Running;
-                    case NodeState.Failure:
-                        return NodeState.Failure;
-                    case NodeState.Success:
-                        continue;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Unknown node state:{nodeState}");
-                }
-            }
-            
-            return NodeState.Success;
+            base.OnStart();
+            Index = 0;
         }
 
         protected override void OnStop() {
+            
+        }
+
+        public override void OnChildExecute(int childIndex, NodeState nodeState) {
+            Index++;
+            State = nodeState switch {
+                NodeState.Success => Index >= Children.Count ? NodeState.Success : NodeState.Running,
+                _ => nodeState
+            };
+        }
+
+        public override bool CanExecute() {
+            return Index < Children.Count && State != NodeState.Failure;
+        }
+
+        public override void OnConditionalAbort(int index) {
+            Index = index;
+            State = NodeState.Inactive;
         }
     }
 }

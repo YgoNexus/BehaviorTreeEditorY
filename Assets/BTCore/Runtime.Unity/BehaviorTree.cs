@@ -8,6 +8,7 @@
 //============================================================
 
 using System;
+using System.Collections;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -18,15 +19,14 @@ namespace BTCore.Runtime.Unity
         [SerializeField]
         private TextAsset _btAsset;
         
-        public BTData BTData { get; private set; }
+        public BTree bTree { get; private set; }
 
         private void Start() {
-            Application.targetFrameRate = 60;
             BTLogger.OnLogReceived += OnLogReceived;
 
             try {
-                BTData = JsonConvert.DeserializeObject<BTData>(_btAsset.text, BTDef.SerializerSettingsAuto);
-                BTData?.RebuildTree();
+                bTree = JsonConvert.DeserializeObject<BTree>(_btAsset.text, BTDef.SerializerSettingsAuto);
+                bTree?.Enable();
             }
             catch (Exception e) {
                 Debug.LogError($"BT data deserialize failed, please check bt asset file!\n{e}");
@@ -34,7 +34,7 @@ namespace BTCore.Runtime.Unity
         }
 
         private void Update() {
-            BTData?.Update();
+            bTree?.Update();
         }
         
         private void OnLogReceived(string message, BTLogType logType) {

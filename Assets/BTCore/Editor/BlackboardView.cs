@@ -15,13 +15,14 @@ using UnityEngine.UIElements;
 
 namespace BTCore.Editor
 {
-    public class BlackboardView : VisualElement, IDataSerializableEditor<Blackboard>
+    public class BlackboardView : VisualElement, IDataSerializable<Blackboard>
     {
         public new class UxmlFactory : UxmlFactory<BlackboardView, UxmlTraits> { }
 
-        private readonly BlackboardInspector _blackboardInspector;
+        private readonly IMGUIContainer _container;
+        private BlackboardInspector _blackboardInspector;
 
-        public Action OnKeyListChanged;
+        public Action OnValueListChanged;
         
         public BlackboardView() {
             // 打开BTEditorWindow的uxml文件，会初始化BlackboardView，导致Odin部分序列化报错，这里直接判空返回处理
@@ -29,26 +30,37 @@ namespace BTCore.Editor
                 return;
             }
             
-            var container = new IMGUIContainer();
-            container.style.flexGrow = 1;
-            Add(container);
-
-            _blackboardInspector = ScriptableObject.CreateInstance<BlackboardInspector>();
-
-            var editor = UnityEditor.Editor.CreateEditor(_blackboardInspector);
-            container.onGUIHandler = () => {
-                if (editor.target) {
-                    editor.OnInspectorGUI();
-                }
-            };
+            _container = new IMGUIContainer();
+            _container.style.flexGrow = 1;
+            Add(_container);
+            
+            CreateBlackboardInspector();
         }
 
+        private void CreateBlackboardInspector() {
+            if (_blackboardInspector == null) {
+                _blackboardInspector = ScriptableObject.CreateInstance<BlackboardInspector>();
+                var editor = UnityEditor.Editor.CreateEditor(_blackboardInspector);
+                if (_container != null)
+                    _container.onGUIHandler = () => {
+                        if (editor.target) {
+                            editor.OnInspectorGUI();
+                        }
+                    };
+            }
+        }
+        
         public void ImportData(Blackboard data) {
+            // 从Runtime状态退回到Editor状态，_blackboardInspector可能为空，这里重新创建添加一遍
+            if (_blackboardInspector == null) {
+                CreateBlackboardInspector();
+            }
+            
             if (_blackboardInspector != null) {
                 _blackboardInspector.ImportData(data);
             }
 
-            _blackboardInspector.OnKeyListChanged ??= OnKeyListChanged;
+            _blackboardInspector.OnValueListChanged ??= OnValueListChanged;
         }
 
         public Blackboard ExportData() {

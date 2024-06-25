@@ -11,10 +11,10 @@ namespace BTCore.Runtime.Actions
 {
     public class Log : Action
     {
-        public BindValue<string> Message { get; set; } = new BindValue<string>();
+        public SharedValue<string> Message { get; set; } = new();
 
         protected override void OnStart() {
-            
+            base.OnStart();
         }
 
         protected override NodeState OnUpdate() {

@@ -20,7 +20,7 @@ namespace BTCore.Runtime.Externals
         public Dictionary<string, string> Properties { get; set; } = new Dictionary<string, string>();
         
         protected override void OnStart() {
-            
+            base.OnStart();
         }
 
         protected override void OnStop() {
