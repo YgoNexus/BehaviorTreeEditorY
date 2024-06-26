@@ -26,7 +26,7 @@ namespace BTCore.Runtime.Unity
 
             try {
                 bTree = JsonConvert.DeserializeObject<BTree>(_btAsset.text, BTDef.SerializerSettingsAuto);
-                bTree?.Enable();
+                bTree?.RebuildTree();
             }
             catch (Exception e) {
                 Debug.LogError($"BT data deserialize failed, please check bt asset file!\n{e}");

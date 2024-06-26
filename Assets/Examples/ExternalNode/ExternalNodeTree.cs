@@ -1,5 +1,5 @@
 ﻿//------------------------------------------------------------
-//        File:  ExternalNodeLauncher.cs
+//        File:  ExternalNodeTree.cs
 //       Brief:  外部节点类型使用测试
 //
 //      Author:  Saroce, Saroce233@163.com
@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Examples.ExternalNode
 {
-    public class ExternalNodeLauncher : MonoBehaviour
+    public class ExternalNodeTree : MonoBehaviour
     {
         [SerializeField]
         private TextAsset _btAsset;
@@ -21,13 +21,12 @@ namespace Examples.ExternalNode
         private readonly IAIService _aiService = new AIService();
     
         private void Start() {
-            Application.targetFrameRate = 60;
             BTLogger.OnLogReceived += OnLogReceived;
             _aiAgent = _aiService.CreateAIAgent(_btAsset.text);
         }
 
         private void Update() {
-            _aiAgent?.Tick((int) (Time.deltaTime * 1000));
+            _aiAgent?.Tick();
         }
         
         private void OnLogReceived(string message, BTLogType logType) {

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12731749, g: 0.13414757, b: 0.1210787, a: 1}
+  m_IndirectSpecularColor: {r: 0.12731704, g: 0.13414727, b: 0.121078536, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -167,4 +167,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a9608d1bd8d48ae915348a6b1c19bad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _btAsset: {fileID: 4900000, guid: b2f0fe99eda705e4ea74e315a6494f9e, type: 3}
+  _btAsset: {fileID: 4900000, guid: 179217fab82e14f458be98215972af99, type: 3}

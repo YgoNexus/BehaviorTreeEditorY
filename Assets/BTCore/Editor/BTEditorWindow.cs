@@ -190,9 +190,9 @@ namespace BTCore.Editor
             
             // 1. 优先判断是否选中运行时的BT
             if (Selection.activeGameObject != null) {
-                var btRunner = Selection.activeGameObject.GetComponent<BehaviorTree>();
-                if (btRunner != null && btRunner.bTree != null) {
-                    btData = btRunner.bTree;
+                var behaviorTree = Selection.activeGameObject.GetComponent<BehaviorTree>();
+                if (behaviorTree != null && behaviorTree.bTree != null) {
+                    btData = behaviorTree.bTree;
                 }
             }
             

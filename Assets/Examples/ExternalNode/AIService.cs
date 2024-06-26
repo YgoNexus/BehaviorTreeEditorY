@@ -8,6 +8,9 @@
 //============================================================
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using BTCore.Runtime;
 using BTCore.Runtime.Externals;
 using Newtonsoft.Json;
@@ -26,16 +29,27 @@ namespace Examples.ExternalNode
     
     public class AIService : IAIService
     {
-        private readonly ExternalNodeFactory nodeFactory = new ExternalNodeFactory(); 
-        
+
+        private readonly Dictionary<string, Type> _name2ExternalNodeTypes = new();
+
         public AIService() {
-            // 注意：typeName要与编辑器上ExternalNode节点上的TypeName对应上，才能映射替换为对应的外部类型
-            // 不想手动的话，也可以用特性来做映射关系，先这么处理吧0.0
-            nodeFactory.AddNodeType("MyAction", typeof(MyAction));
-            nodeFactory.AddNodeType("MyCondition", typeof(MyCondition));
+            var types = GetTypesImpInterface(typeof(IExternalNode));
+            foreach (var type in types) {
+                _name2ExternalNodeTypes.Add(type.Name, type);
+            }
         }
 
-        private IExternalNode CreateExternalNode(string typeName) => nodeFactory.CrateNode(typeName);
+        private IEnumerable<Type> GetTypesImpInterface(Type interfaceType) {
+            return Assembly.GetExecutingAssembly().GetTypes().Where(x => x.GetInterfaces().Contains(interfaceType));
+        }
+
+        private IExternalNode CreateExternalNode(string typeName) {
+            if (!_name2ExternalNodeTypes.ContainsKey(typeName)) {
+                return null;
+            }
+            
+            return Activator.CreateInstance(_name2ExternalNodeTypes[typeName]) as IExternalNode;
+        }
         
         public IAIAgent CreateAIAgent(string strategy) {
             var btTree = (BTree) null;
@@ -56,7 +70,7 @@ namespace Examples.ExternalNode
         /// <summary>
         /// 将编辑器中ExternalNode节点需要替换为实际外部工程中的节点类型
         /// </summary>
-        /// <param name="btData"></param>
+        /// <param name="btTree"></param>
         /// <returns></returns>
         private void ReplaceWithExternalNodes(BTree btTree) {
             if (btTree == null) {
@@ -86,6 +100,9 @@ namespace Examples.ExternalNode
                 btNode.Guid = node.Guid;
                 btTree.BTData.ReplaceNode(i, btNode);
             }
+            
+            // 节点替换完毕后，重建BT节点关系
+            btTree.RebuildTree();
         }
     }
 }

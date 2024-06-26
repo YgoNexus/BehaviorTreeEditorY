@@ -45,8 +45,6 @@ namespace BTCore.Runtime
             BTData.Nodes.ForEach(node => {
                 node.Init(this);
             });
-            
-            RebuildTree();
         }
         
         /// <summary>
@@ -55,6 +53,7 @@ namespace BTCore.Runtime
         public void RebuildTree() {
             var treeNodes = BTData.Nodes;
             treeNodes.ForEach(RebindChild);
+            Enable();
         }
         
         private void RebindChild(BTNode node) {
@@ -70,7 +69,7 @@ namespace BTCore.Runtime
             }
         }
 
-        public void Enable() {
+        private void Enable() {
             if (BTData.EntryNode?.GetChild() == null) {
                 BTLogger.Error("Entry node is null!");
                 return;
