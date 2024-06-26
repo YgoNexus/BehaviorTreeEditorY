@@ -67,8 +67,7 @@ namespace BTCore.Editor
             _btView.OnNodeSelected = OnNodeSelected;
             
             _undoRedo = new BTUndoRedo();
-            SelectNewTree(new BTree());
-
+            
             OnSelectionChange();
         }
 
@@ -162,7 +161,7 @@ namespace BTCore.Editor
         }
 
         private void OnInspectorUpdate() {
-            if (Application.isPlaying) {
+            if (EditorApplication.isPlaying) {
                 _btView.UpdateNodesStyle();
             }
         }
@@ -176,8 +175,8 @@ namespace BTCore.Editor
         }
 
         private void OnPlayModeStateChanged(PlayModeStateChange stateChange) {
-            if (stateChange == PlayModeStateChange.ExitingPlayMode) {
-                SelectNewTree(new BTree());
+            if (stateChange == PlayModeStateChange.EnteredEditMode) {
+                OnSelectionChange();
             }
         }
 
@@ -187,12 +186,17 @@ namespace BTCore.Editor
             }
 
             var btData = (BTree) null;
+            var behaviorTree = (BehaviorTree) null;
             
             // 1. 优先判断是否选中运行时的BT
-            if (Selection.activeGameObject != null) {
-                var behaviorTree = Selection.activeGameObject.GetComponent<BehaviorTree>();
-                if (behaviorTree != null && behaviorTree.bTree != null) {
-                    btData = behaviorTree.bTree;
+            if (Selection.activeGameObject != null &&
+                (behaviorTree = Selection.activeGameObject.GetComponent<BehaviorTree>())) {
+                if (EditorApplication.isPlaying) {
+                    btData = behaviorTree.BTree;
+                }
+                else {
+                    behaviorTree.CreateBTree();
+                    btData = behaviorTree.BTree;
                 }
             }
             

@@ -103,6 +103,8 @@ namespace Examples.ExternalNode
             
             // 节点替换完毕后，重建BT节点关系
             btTree.RebuildTree();
+            // 启用BT
+            btTree.Enable();
         }
     }
 }

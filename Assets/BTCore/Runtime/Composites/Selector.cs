@@ -36,7 +36,7 @@ namespace BTCore.Runtime.Composites
         
         public override void OnConditionalAbort(int index) {
             Index = index;
-            State = NodeState.Inactive;
+            State = NodeState.Running;
         }
     }
 }

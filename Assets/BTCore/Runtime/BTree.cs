@@ -53,7 +53,6 @@ namespace BTCore.Runtime
         public void RebuildTree() {
             var treeNodes = BTData.Nodes;
             treeNodes.ForEach(RebindChild);
-            Enable();
         }
         
         private void RebindChild(BTNode node) {
@@ -69,7 +68,7 @@ namespace BTCore.Runtime
             }
         }
 
-        private void Enable() {
+        public void Enable() {
             if (BTData.EntryNode?.GetChild() == null) {
                 BTLogger.Error("Entry node is null!");
                 return;
@@ -263,7 +262,7 @@ namespace BTCore.Runtime
             stack.Push(index);
             var node = _nodeList[index];
             node.Start();
-            BTLogger.Debug($"Push Node: {node}");
+            // BTLogger.Debug($"Push Node: {node}");
         }
 
         private NodeState PopNode(int index, int stackIndex, NodeState state, bool popChildren = true) {
@@ -273,7 +272,7 @@ namespace BTCore.Runtime
             node.Stop();
             node.State = state;
             
-            BTLogger.Debug($"Pop Node: {node}");
+            // BTLogger.Debug($"Pop Node: {node}");
             
             // 有父节点为ParentNode, 需要根据子节点的状态改变其变化
             var parentIndex = _parentIndex[index];
@@ -294,19 +293,19 @@ namespace BTCore.Runtime
                                 var conditionalReevaluate = new ConditionalReevaluate(index, state, compositeIndex);
                                 _conditionalReevaluates.Add(conditionalReevaluate);
                                 _index2ConditionalReevaluate.Add(index, conditionalReevaluate);
-                                BTLogger.Debug($"生成条件评估对象：{conditionalReevaluate}");
+                                // BTLogger.Debug($"生成条件评估对象：{conditionalReevaluate}");
                             }
                         }
                     }
                 }
 
                 // 子节点弹出栈才会影响到部分父组合节点的状态(Sequence、Selector)
-                if (_nodeList[parentIndex] is ParentNode parentNode) {
-                    // 父节点为装饰节点，可能改变返回状态
-                    if (parentNode is Decorator decorator) {
-                        state = decorator.Decorate(state);
-                    }
-                    parentNode.OnChildExecute(_relativeChildIndex[index], state);
+                var parentNode = _nodeList[parentIndex] as ParentNode;
+                parentNode?.OnChildExecute(_relativeChildIndex[index], state);
+                
+                // 父节点为装饰节点，可能改变返回状态
+                if (parentNode is Decorator decorator) {
+                    state = decorator.Decorate(state);
                 }
             }
             
@@ -386,7 +385,7 @@ namespace BTCore.Runtime
         private void RemoveChildConditionalReevaluate(int index) {
             for (var i = _conditionalReevaluates.Count - 1; i >= 0; i--) {
                 if (_conditionalReevaluates[i].CompositeIndex == index) {
-                    BTLogger.Debug($"移除条件评估对象：{_conditionalReevaluates[i]}");
+                    // BTLogger.Debug($"移除条件评估对象：{_conditionalReevaluates[i]}");
                     _index2ConditionalReevaluate.Remove(_conditionalReevaluates[i].Index);
                     _conditionalReevaluates.RemoveAt(i);
                 }
@@ -411,7 +410,7 @@ namespace BTCore.Runtime
                 state = PopNode(index, stackIndex, state);
             }
 
-            return node.State = state;
+            return state;
         }
 
         private NodeState RunParentNode(int index, int stackIndex, NodeState preState) {

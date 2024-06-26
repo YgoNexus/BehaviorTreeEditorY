@@ -19,22 +19,26 @@ namespace BTCore.Runtime.Unity
         [SerializeField]
         private TextAsset _btAsset;
         
-        public BTree bTree { get; private set; }
+        public BTree BTree { get; private set; }
 
         private void Start() {
             BTLogger.OnLogReceived += OnLogReceived;
+            CreateBTree();
+            BTree?.Enable();
+        }
 
+        public void CreateBTree() {
             try {
-                bTree = JsonConvert.DeserializeObject<BTree>(_btAsset.text, BTDef.SerializerSettingsAuto);
-                bTree?.RebuildTree();
+                BTree = JsonConvert.DeserializeObject<BTree>(_btAsset.text, BTDef.SerializerSettingsAuto);
+                BTree?.RebuildTree();
             }
             catch (Exception e) {
                 Debug.LogError($"BT data deserialize failed, please check bt asset file!\n{e}");
             }
         }
-
+        
         private void Update() {
-            bTree?.Update();
+            BTree?.Update();
         }
         
         private void OnLogReceived(string message, BTLogType logType) {

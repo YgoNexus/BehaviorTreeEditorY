@@ -291,8 +291,7 @@ namespace BTCore.Editor
             AddElement(nodeView);
             return nodeView;
         }
-
-        // TODO 这里数据部分更新有点问题待处理
+        
         private void AddChildView(BTNodeView parentView, BTNodeView childView) {
             // 父节点输出端口为单连接时，需要先删除已存在的连线
             if (parentView.Output.capacity == Port.Capacity.Single) {
@@ -306,7 +305,16 @@ namespace BTCore.Editor
 
         private void RemoveEdgesOnly(IEnumerable<Edge> toRemove) {
             _isRemoveOnly = true;
-            DeleteElements(toRemove);
+            
+            // 删除连线前，需更新数据部分关系
+            var edgeToRemove = toRemove.ToList();
+            foreach (var edge in edgeToRemove) {
+                if (edge.output.node is BTNodeView parentView && edge.input.node is BTNodeView childView) {
+                    RemoveChild(parentView.Node, childView.Node);
+                }
+            }
+            DeleteElements(edgeToRemove);
+
             _isRemoveOnly = false;
         }
 
