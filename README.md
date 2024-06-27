@@ -12,7 +12,7 @@
 
 若只在Unity里面用，正常使用即可，挂载上BehaviorTree组件，或者其他反序列化BT数据后做Tick操作即可。当需要支持BT.Runtime部分脱离Unity环境运行，用于服务端或者帧同步框架上时，可以直接拷贝源码，或者独立生成BTRuntime.dll到外部工程，引用上Newtonsoft.Json即可。节点的Inspector面板和黑板面板都是用Odin插件实现编辑效果，支持节点变量绑定黑板数据，实现逻辑可以看BTCore.Editor部分代码。
 
-##### 功能实现
+#### 功能实现
 
 - [x] 行为树节点数据编辑，黑板功能实现
 - [x] 支持节点赋值粘贴、撤销回退，运行时预览状态
@@ -20,7 +20,7 @@
 - [x] 实现组合节点3种中断机制，Self、LowerPriority、Both
 - [x] 增加对单个节点的注释，新增节点Group、StickyNotes(版本需2020往上)
 
-##### 效果图
+#### 效果图
 
 ![编辑效果图](Images/StickNoteAndGroup.png)
 Group、StickNote在节点搜索框分类的Others里面。注意按住Shift建后，再点击Group里面的节点才能拖拽出组！
@@ -37,8 +37,8 @@ Group、StickNote在节点搜索框分类的Others里面。注意按住Shift建�
 
 #### 已知问题
 
-~~装饰节点在已有子节点的情况下，直接拖拽新的子节点可能会导致BT数据部分对不上~~
-注意目前Group、StickNote节点不支持撤销、回退！！！
+- ~~装饰节点在已有子节点的情况下，直接拖拽新的子节点可能会导致BT数据部分对不上~~
+- 注意目前Group、StickNote节点不支持撤销、回退！！！
 
 #### 参考
 
