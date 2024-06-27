@@ -122,6 +122,7 @@ namespace BTCore.Editor
             _btData = btData;
             
             ClearGraphs();
+            _graphElements.Clear();
             BTEditorWindow.Instance.ClearNodeSelectedInspector();
             
             // 默认没有会创建对应的入口节点

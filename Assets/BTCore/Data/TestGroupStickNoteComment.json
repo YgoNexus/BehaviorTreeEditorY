@@ -40,9 +40,9 @@
           },
           "Name": "Selector",
           "Guid": "94770b4d-177c-4b3c-b7e0-ebc1b7a29738",
-          "Comment": "设置了自身打断",
-          "PosX": 30.0,
-          "PosY": 469.0
+          "Comment": "",
+          "PosX": -20.8000031,
+          "PosY": 559.2001
         },
         {
           "$type": "BTCore.Runtime.Unity.Conditions.IsKeyDown, BTRuntime.Unity",
@@ -51,8 +51,8 @@
           "Name": "IsKeyDown",
           "Guid": "3c9000d3-713e-4f92-9636-04c79b511e9c",
           "Comment": "按下A键可打断右边",
-          "PosX": -35.0,
-          "PosY": 618.0
+          "PosX": -85.6000061,
+          "PosY": 708.0
         },
         {
           "$type": "Examples.AbortType.ActionWork, Assembly-CSharp",
@@ -60,8 +60,8 @@
           "Name": "ActionWork",
           "Guid": "cce72ded-263c-441f-b9c5-d9105e6d7cd1",
           "Comment": null,
-          "PosX": 129.0,
-          "PosY": 618.0
+          "PosX": 78.3999939,
+          "PosY": 708.0
         },
         {
           "$type": "BTCore.Runtime.Composites.Sequence, BTRuntime",
@@ -87,8 +87,8 @@
           "Name": "ActionSkill",
           "Guid": "c374c434-4261-4533-b642-3a622a4041d1",
           "Comment": null,
-          "PosX": 360.0,
-          "PosY": 491.0
+          "PosX": 368.799957,
+          "PosY": 589.600037
         }
       ]
     },
@@ -99,10 +99,10 @@
           "$type": "BTCore.Runtime.OtherNodes.StickNoteNode, BTRuntime",
           "Title": "标题",
           "Content": "这是内容这是内容这是内容这是内容这是内容",
-          "X": 541.0,
-          "Y": 177.0,
+          "X": 540.800049,
+          "Y": 176.799988,
           "Width": 208.0,
-          "Height": 241.0
+          "Height": 240.800018
         }
       ]
     },
@@ -112,10 +112,10 @@
         {
           "$type": "BTCore.Runtime.OtherNodes.GroupNode, BTRuntime",
           "Title": "自身打断测试",
-          "X": -60.0,
-          "Y": 386.0,
-          "Width": 344.0,
-          "Height": 328.0,
+          "X": -111.200012,
+          "Y": 474.400024,
+          "Width": 344.8,
+          "Height": 329.599976,
           "GroupColor": {
             "$type": "BTCore.Runtime.OtherNodes.GroupColor, BTRuntime",
             "R": 0.5444998,
@@ -135,10 +135,10 @@
         {
           "$type": "BTCore.Runtime.OtherNodes.GroupNode, BTRuntime",
           "Title": "模拟施法测试",
-          "X": 335.0,
-          "Y": 408.0,
-          "Width": 180.0,
-          "Height": 159.0,
+          "X": 343.2,
+          "Y": 504.800049,
+          "Width": 180.800049,
+          "Height": 161.599976,
           "GroupColor": {
             "$type": "BTCore.Runtime.OtherNodes.GroupColor, BTRuntime",
             "R": 0.108490586,
