@@ -37,6 +37,7 @@ namespace BTCore.Editor.Inspectors.Actions
 
         protected override void OnFieldValueChanged() {
             _waitData.Duration = _duration;
+            base.OnFieldValueChanged();
         }
 
         public override void Reset() {

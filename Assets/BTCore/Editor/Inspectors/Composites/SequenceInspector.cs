@@ -29,6 +29,7 @@ namespace BTCore.Editor.Inspectors.Composites
         
         protected override void OnFieldValueChanged() {
             _sequence.AbortType = AbortType;
+            base.OnFieldValueChanged();
         }
 
         public override void Reset() {

@@ -37,11 +37,8 @@ namespace BTCore.Editor.Inspectors.Decorators
         }
         
         protected override void OnFieldValueChanged() {
-            if (_repeater == null) {
-                return;
-            }
-            
             _repeater.RepeatCount = _count;
+            base.OnFieldValueChanged();
         }
 
         public override void Reset() {

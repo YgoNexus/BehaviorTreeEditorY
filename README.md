@@ -10,9 +10,22 @@
 
 #### 使用说明
 
-基于UIToolkit实现行为树数据编辑，支持赋值粘贴，撤销回退，运行时预览等操作。当需要支持BT.Runtime部分脱离Unity环境运行，用于服务端或者帧同步框架上时，可以直接拷贝源码，或者导出BTRuntime.dll到外部工程，引用上Newtonsoft.Json即可。节点的Inspector面板和黑板面板都是用Odin插件实现编辑效果，支持节点变量绑定黑板数据，实现逻辑可以看BTCore.Editor部分代码。
+若只在Unity里面用，正常使用即可，挂载上BehaviorTree组件，或者其他反序列化BT数据后做Tick操作即可。当需要支持BT.Runtime部分脱离Unity环境运行，用于服务端或者帧同步框架上时，可以直接拷贝源码，或者独立生成BTRuntime.dll到外部工程，引用上Newtonsoft.Json即可。节点的Inspector面板和黑板面板都是用Odin插件实现编辑效果，支持节点变量绑定黑板数据，实现逻辑可以看BTCore.Editor部分代码。
 
-#### 新增节点中断机制
+##### 功能实现
+
+- [x] 行为树节点数据编辑，黑板功能实现
+- [x] 支持节点赋值粘贴、撤销回退，运行时预览状态
+- [x] 右键实现节点分类搜索框、选中自动生成对应节点
+- [x] 实现组合节点3种中断机制，Self、LowerPriority、Both
+- [x] 增加对单个节点的注释，新增节点Group、StickyNotes(版本需2020往上)
+
+##### 效果图
+
+![编辑效果图](Images/StickNoteAndGroup.png)
+Group、StickNote在节点搜索框分类的Others里面。注意按住Shift建后，再点击Group里面的节点才能拖拽出组！
+
+#### 节点中断机制
 
 ![编辑效果图](Images/LowerPriorityAbort.gif)
 增加了组合节点的中断功能，如图所示Sequence设置了LowPriority，当按钮按下时，能够打断右边的持续性Action节点运行，整体思路可参考BehaviorDesigner
@@ -25,6 +38,7 @@
 #### 已知问题
 
 ~~装饰节点在已有子节点的情况下，直接拖拽新的子节点可能会导致BT数据部分对不上~~
+注意目前Group、StickNote节点不支持撤销、回退！！！
 
 #### 参考
 

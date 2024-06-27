@@ -13,6 +13,7 @@ using System.Linq;
 using BTCore.Runtime;
 using BTCore.Runtime.Composites;
 using BTCore.Runtime.Decorators;
+using BTCore.Runtime.OtherNodes;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
@@ -31,10 +32,10 @@ namespace BTCore.Editor
 
         private readonly Vector2 _pasteNodeOffset = new Vector2(50f, 50f);
         private readonly Vector2 _entryPos = new Vector2(225f, 150f);
+        private readonly List<GraphElement> _graphElements = new();
         private bool _isRemoveOnly = false;
 
-        // private List<BTData> _undoStack = new List<BTData>();
-        // private const int UNDO_MAX_COUNT = 15;
+        private Image _abortIcon;
 
         public BTView() {
             Insert(0, new GridBackground());
@@ -141,6 +142,37 @@ namespace BTCore.Editor
                     
                 });
             });
+
+            // 处理StickNote部分
+            foreach (var stickNoteData in _btData.StickNotes) {
+                var stickyNote = new StickyNote
+                {
+                    title = stickNoteData.Title,
+                    contents = stickNoteData.Content
+                };
+                stickyNote.SetPosition(new Rect(stickNoteData.X, stickNoteData.Y, stickNoteData.Width, stickNoteData.Height));
+                AddGraphElement(stickyNote);
+                AddElement(stickyNote);
+            }
+            
+            // 处理Group部分
+            foreach (var groupData in _btData.NodeGroups) {
+                var colorGroup = new ColorGroup {
+                    title = groupData.Title,
+                    style = { backgroundColor = new StyleColor(groupData.GroupColor) }
+                };
+                colorGroup.SetPosition(new Rect(groupData.X, groupData.Y, groupData.Width, groupData.Height));
+
+                foreach (var nodeGuid in groupData.NodeGuids) {
+                    var node = GetNodeByGuid(nodeGuid);
+                    if (node != null) {
+                        colorGroup.AddElement(node);
+                    }
+                }
+                
+                AddGraphElement(colorGroup);
+                AddElement(colorGroup);
+            }
         }
 
         private void ClearGraphs() {
@@ -153,8 +185,67 @@ namespace BTCore.Editor
             return GetNodeByGuid(guid) as BTNodeView;
         }
 
+        public List<GraphElement> GetGraphElements() {
+            return _graphElements;
+        }
+        
+        public void AddGraphElement(GraphElement element) {
+            _graphElements.Add(element);
+        }
+
+        public void RemoveGraphElement(GraphElement element) {
+            _graphElements.Remove(element);
+        }
+        
         public BTData ExportData() {
+            _btData.StickNotes.Clear();
+            _btData.NodeGroups.Clear();
+            
+            // 导出数据的时候，需要将GraphElements里的数据保存下
+            foreach (var graphElement in GetGraphElements()) {
+                switch (graphElement) {
+                    case StickyNote stickyNote:
+                        ExportStickNoteData(stickyNote);
+                        break;
+                    case ColorGroup colorGroup:
+                        ExportNodeGroupData(colorGroup);
+                        break;
+                }
+            }
+            
             return _btData;
+        }
+
+        private void ExportStickNoteData(StickyNote stickyNote) {
+            _btData.StickNotes.Add(new StickNoteNode() {
+                Title = stickyNote.title,
+                Content = stickyNote.contents,
+                X = stickyNote.GetPosition().x,
+                Y = stickyNote.GetPosition().y,
+                Width = stickyNote.GetPosition().width,
+                Height = stickyNote.GetPosition().height
+            });
+        }
+
+        private void ExportNodeGroupData(ColorGroup colorGroup) {
+            var color = colorGroup.style.backgroundColor.value;
+            var groupNode = new GroupNode() {
+                Title = colorGroup.title,
+                X = colorGroup.GetPosition().x,
+                Y = colorGroup.GetPosition().y,
+                Width = colorGroup.GetPosition().width,
+                Height = colorGroup.GetPosition().height,
+                GroupColor = new GroupColor(color)
+            };
+            
+            // 查询当前组包含那些节点
+            foreach (var element in colorGroup.containedElements) {
+                if (element is BTNodeView nodeView) {
+                    groupNode.NodeGuids.Add(nodeView.Node.Guid);
+                }
+            }
+            
+            _btData.NodeGroups.Add(groupNode);
         }
 
         /// <summary>
@@ -186,6 +277,11 @@ namespace BTCore.Editor
                     if (foundNode != null) {
                         _btData.RemoveNode(foundNode);
                     }
+                }
+
+                // 其他节点
+                if (ele is StickyNote or ColorGroup) {
+                    RemoveGraphElement(ele);
                 }
             });
 
@@ -223,8 +319,17 @@ namespace BTCore.Editor
         public void CreteNode(Type type, Vector2 pos, BTNodeView sourceNode, bool isAsParent) {
             var nodeView = (BTNodeView) null;
             var oldData = JsonConvert.SerializeObject(_btData, BTDef.SerializerSettingsAll);
-            var node = CreateNode(type, pos);
+
+            if (!type.IsSubclassOf(typeof(BTNode)) && Activator.CreateInstance(type) is GraphElement element) {
+                element.style.left = pos.x;
+                element.style.top = pos.y;
+                AddGraphElement(element);
+                AddElement(element);
+                return;
+            }
             
+            var node = CreateNode(type, pos);
+
             // sourceNode作为子节点
             if (sourceNode != null && !isAsParent) {
                 // 刪除此节点在数据部分作为孩子的关系
@@ -259,7 +364,10 @@ namespace BTCore.Editor
             SelectNode(nodeView);
         }
 
-
+        private void CreateOtherNode(Type type) {
+            
+        }
+        
         private BTNode CreateNode<T>(Vector2 pos) where T : BTNode {
             return CreateNode(typeof(T), pos);
         }

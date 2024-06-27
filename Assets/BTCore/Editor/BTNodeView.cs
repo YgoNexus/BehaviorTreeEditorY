@@ -31,7 +31,10 @@ namespace BTCore.Editor
         private readonly BTView _btView;
         private NodePosition _recordPosition;
         private string _oldData;
-
+        private TextField _commentField;
+        private Image _abortIcon;
+        private AbortType _preAbortType;
+        
         public BTNodeView NodeParent {
             get {
                 foreach (var edge in Input.connections) {
@@ -44,15 +47,68 @@ namespace BTCore.Editor
         
         public BTNodeView(BTView btView) : base(BTEditorDef.BTNodeViewUxmlPath) {
             _btView = btView;
+            AddCommentField();
+        }
+
+        private void AddCommentField() {
+            _commentField = new TextField {
+                multiline = true
+            };
+            outputContainer.Add(_commentField);
+            _commentField.BringToFront();
+            _commentField.style.maxWidth = 150;
+            _commentField.style.whiteSpace = WhiteSpace.Normal;
+            _commentField.style.backgroundColor = new StyleColor(new Color(1, 0, 0, 1));
+            _commentField.SetEnabled(false);
+            _commentField.style.display = DisplayStyle.None;
         }
 
         public void UpdateView() {
             if (Node == null) {
                 return;
             }
-
-            // 目前只有title属性有刷新需求，其他需要再加
+            
+            // 标题
             title = Node.Name;
+            // 注释
+            _commentField.style.display = string.IsNullOrEmpty(Node.Comment) ? DisplayStyle.None : DisplayStyle.Flex;
+            _commentField.value = Node.Comment;
+
+            // 中断标识
+            if (Node is not Composite composite) {
+                return;
+            }
+            
+            if (composite.AbortType == AbortType.None && _abortIcon != null) {
+                Remove(_abortIcon);
+                return;
+            }
+
+            if (_preAbortType == composite.AbortType) {
+                return;
+            }
+            
+            _preAbortType = composite.AbortType;
+            _abortIcon ??= CreateConditionalAbortIcon();
+            _abortIcon.image = composite.AbortType switch {
+                AbortType.Self => Resources.Load<Texture2D>("ConditionalAbortSelfIcon"),
+                AbortType.LowerPriority => Resources.Load<Texture2D>("ConditionalAbortLowerPriorityIcon"),
+                AbortType.Both => Resources.Load<Texture2D>("ConditionalAbortBothIcon"),
+                _ => _abortIcon.image
+            };
+            Add(_abortIcon);
+        }
+        
+        
+        private Image CreateConditionalAbortIcon() {
+            _abortIcon = new Image();
+            _abortIcon.style.width = 18;
+            _abortIcon.style.height = 18;
+            _abortIcon.style.position = new StyleEnum<Position>(Position.Absolute);
+            _abortIcon.style.top = 5;
+            _abortIcon.style.left = 6;
+
+            return _abortIcon;
         }
 
         public void ImportData(BTNode data) {
@@ -66,6 +122,7 @@ namespace BTCore.Editor
             CreateInputPorts();
             CreateOutputPorts();
             SetupClasses();
+            UpdateView();
         }
 
         public BTNode ExportData() {

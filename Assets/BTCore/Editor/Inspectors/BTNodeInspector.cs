@@ -9,6 +9,7 @@
 
 using System;
 using BTCore.Runtime;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace BTCore.Editor.Inspectors
@@ -17,6 +18,10 @@ namespace BTCore.Editor.Inspectors
     {
         [HideInInspector]
         public Action OnNodeViewUpdate;
+
+        [TextArea]
+        [OnValueChanged("OnFieldValueChanged")]
+        public string Comment;
         
         public abstract void ImportData(BTNode data);
         public abstract BTNode ExportData();
@@ -33,10 +38,20 @@ namespace BTCore.Editor.Inspectors
     
     public abstract class BTNodeInspector<T> : BTNodeInspector where T : BTNode
     {
+        private BTNode _btNode;
+        
         public override void ImportData(BTNode data) {
+            _btNode = data;
+            Comment = data.Comment;
             OnImportData(data as T);
         }
 
         protected abstract void OnImportData(T data);
+
+        // 字段数值变化后，可能需要刷新下对应NodeView的显示，这个应放到最后调用
+        protected override void OnFieldValueChanged() {
+            _btNode.Comment = Comment;
+            OnNodeViewUpdate?.Invoke();
+        }
     }
 }

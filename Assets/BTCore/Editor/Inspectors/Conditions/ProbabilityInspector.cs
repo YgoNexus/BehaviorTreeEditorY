@@ -37,6 +37,7 @@ namespace BTCore.Editor.Inspectors.Conditions
         
         protected override void OnFieldValueChanged() {
             _probabilityData.Probability = _probability.ExportData();
+            base.OnFieldValueChanged();
         }
 
         public override void Reset() {

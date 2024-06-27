@@ -36,6 +36,7 @@ namespace BTCore.Editor.Inspectors.Actions
 
         protected override void OnFieldValueChanged() {
             _logData.Message = _message.ExportData();
+            base.OnFieldValueChanged();
         }
 
         public override void Reset() {

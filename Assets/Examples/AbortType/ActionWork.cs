@@ -16,7 +16,7 @@ namespace Examples.AbortType
     public class ActionWork : Action
     {
         private float _startTime;
-        private float _duration = 4000;
+        private float _duration = 5000;
         
         protected override void OnStart() {
             base.OnStart();

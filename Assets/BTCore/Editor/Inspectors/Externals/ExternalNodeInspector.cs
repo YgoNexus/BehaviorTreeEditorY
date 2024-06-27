@@ -50,7 +50,8 @@ namespace BTCore.Editor.Inspectors.Externals
             // 更新Name字段，同步更新对应NodeView的title显示
             if (ExternalNode is BTNode node) {
                 node.Name = TypeName;
-                OnNodeViewUpdate?.Invoke();
+                node.Comment = Comment;
+                base.OnFieldValueChanged();
             }
         }
 

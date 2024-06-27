@@ -28,6 +28,7 @@ namespace BTCore.Editor.Inspectors.Conditions
         
         protected override void OnFieldValueChanged() {
             _isKeyDown.KeyCode = _keyCode;
+            base.OnFieldValueChanged();
         }
 
         public override void Reset() {

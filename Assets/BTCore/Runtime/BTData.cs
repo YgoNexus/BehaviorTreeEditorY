@@ -9,6 +9,7 @@
 
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using BTCore.Runtime.OtherNodes;
 
 namespace BTCore.Runtime
 {
@@ -16,9 +17,13 @@ namespace BTCore.Runtime
     {
         public EntryNode EntryNode;
         public readonly List<BTNode> Nodes = new();
-        
+
         private readonly Dictionary<string, BTNode> _guid2Nodes = new();
         
+#if UNITY_EDITOR        
+        public readonly List<StickNoteNode> StickNotes = new();
+        public readonly List<GroupNode> NodeGroups = new();
+
         public void AddNode(BTNode node) {
             Nodes.Add(node);
             _guid2Nodes.Add(node.Guid, node);
@@ -33,6 +38,7 @@ namespace BTCore.Runtime
             Nodes.Remove(toRemove);
             _guid2Nodes.Remove(node.Guid);
         }
+#endif
 
         /// <summary>
         /// 节点替换，主要用于外部节点处理

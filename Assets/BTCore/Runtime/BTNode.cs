@@ -17,6 +17,7 @@ namespace BTCore.Runtime
     {
         public string Name { get; set; }
         public string Guid { get; set; }
+        public string Comment { get; set; }
 #if UNITY_EDITOR
         public float PosX { get; set; }
         public float PosY { get; set; }

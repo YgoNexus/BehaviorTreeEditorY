@@ -11,14 +11,16 @@ namespace BTCore.Runtime
 {
     public interface INode
     {
-        string Name { get; }
+        string Name { get; set; }
         
-        string Guid { get; }
+        string Guid { get; set; }
 
-#if UNITY_EDITOR
-        float PosX { get; }
+        string Comment { get; set; }
         
-        float PosY { get; }
+#if UNITY_EDITOR
+        float PosX { get; set; }
+        
+        float PosY { get; set; }
 #endif
     }
 }

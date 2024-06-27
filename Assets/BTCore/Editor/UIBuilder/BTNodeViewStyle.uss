@@ -78,7 +78,7 @@
 }
 
 .composite #input {
-    background-color: rgb(243, 136, 17);
+    background-color: rgb(250, 131, 0);
 }
 
 .decorator #input {

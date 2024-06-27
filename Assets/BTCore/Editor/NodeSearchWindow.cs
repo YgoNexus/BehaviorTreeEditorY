@@ -81,6 +81,18 @@ namespace BTCore.Editor
                 }
             }
             
+            // Add Others
+            {
+                tree.Add(new SearchTreeGroupEntry(new GUIContent("Others"), 1));
+                var stickNodeType = typeof(StickyNote);
+                var groupType = typeof(ColorGroup);
+                
+                var otherTypes = new List<Type>() { stickNodeType, groupType };
+                foreach (var type in otherTypes) {
+                    tree.Add(new SearchTreeEntry(new GUIContent($"{type.Name}", _indentIcon)) { level = 2, userData = type});   
+                }
+            }
+            
             return tree;
         }
         
