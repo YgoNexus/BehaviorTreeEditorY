@@ -48,6 +48,7 @@ namespace BTCore.Editor
         public BTNodeView(BTView btView) : base(BTEditorDef.BTNodeViewUxmlPath) {
             _btView = btView;
             AddCommentField();
+            this.AddManipulator(new DoubleClickNode());
         }
 
         private void AddCommentField() {

@@ -8,7 +8,6 @@
 //============================================================
 
 using System;
-using System.Collections;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -28,6 +27,11 @@ namespace BTCore.Runtime.Unity
         }
 
         public void CreateBTree() {
+            if (_btAsset == null) {
+                Debug.LogError("Please assign bt asset file.");
+                return;
+            }
+            
             try {
                 BTree = JsonConvert.DeserializeObject<BTree>(_btAsset.text, BTDef.SerializerSettingsAuto);
                 BTree?.RebuildTree();
@@ -36,7 +40,7 @@ namespace BTCore.Runtime.Unity
                 Debug.LogError($"BT data deserialize failed, please check bt asset file!\n{e}");
             }
         }
-        
+
         private void Update() {
             BTree?.Update();
         }

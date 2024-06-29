@@ -27,6 +27,8 @@ namespace BTCore.Editor
         
         public Blackboard Blackboard => _blackboardView.ExportData();
         public BTView BTView => _btView;
+
+        private BTree _preBTree;
         
         [MenuItem("Tools/BehaviorTree/BTEditorWindow")]
         public static void OpenWindow()
@@ -229,6 +231,11 @@ namespace BTCore.Editor
             if (_btView == null) {
                 return;
             }
+
+            if (_preBTree == bTree) {
+                return;
+            }
+            _preBTree = bTree;
             
             // 每次导入新的BT数据时，需要清空undo、redo保存数据
             if (_undoRedo != null) {
