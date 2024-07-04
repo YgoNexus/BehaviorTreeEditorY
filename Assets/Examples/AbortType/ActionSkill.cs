@@ -16,7 +16,7 @@ namespace Examples.AbortType
     public class ActionSkill : Action
     {
         private float _startTime;
-        private float _duration = 4000;
+        private float _duration = 2000;
         
         protected override void OnStart() {
             base.OnStart();

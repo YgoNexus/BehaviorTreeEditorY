@@ -26,20 +26,25 @@ namespace BTCore.Runtime
         public NodeState State = NodeState.Inactive;
 
         protected Blackboard Blackboard;
-        
-        public void Init(BTree bTree) {
-            Blackboard = bTree.Blackboard;
-            
+
+        public void SetBlackboard(Blackboard blackboard) {
+            Blackboard = blackboard;
+
             foreach (var propertyInfo in GetType().GetProperties()) {
                 if (propertyInfo.PropertyType.IsSubclassOf(typeof(SharedValue))) {
                     if (propertyInfo.GetValue(this) is not SharedValue sharedValue) {
                         continue;
                     }
 
-                    var property = sharedValue.GetType().GetProperty("Blackboard", BindingFlags.Instance | BindingFlags.NonPublic);
-                    property?.SetValue(sharedValue, bTree.Blackboard);
+                    var property = sharedValue.GetType()
+                        .GetProperty("Blackboard", BindingFlags.Instance | BindingFlags.NonPublic);
+                    property?.SetValue(sharedValue, blackboard);
                 }
-            }   
+            }
+        }
+        
+        public void Init() {
+            OnInit();
         }
         
         public void Start() {
@@ -57,7 +62,9 @@ namespace BTCore.Runtime
         public void Pause(bool isPause) {
             OnPause(isPause);
         }
-        
+
+        protected virtual void OnInit() { }
+
         protected virtual void OnStart() { State = NodeState.Running; }
         protected virtual NodeState OnUpdate() { return NodeState.Failure; }
         protected virtual void OnStop() { }

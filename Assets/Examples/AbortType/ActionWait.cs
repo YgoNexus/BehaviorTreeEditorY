@@ -16,7 +16,7 @@ namespace Examples.AbortType
     public class ActionWait : Action
     {
         private float _startTime;
-        private float _duration = 6000;
+        private float _duration = 2000;
         
         protected override void OnStart() {
             base.OnStart();
@@ -27,7 +27,7 @@ namespace Examples.AbortType
 
         protected override NodeState OnUpdate() {
             var elapseTime = (Time.time - _startTime) * 1000;
-            return elapseTime > _duration ? NodeState.Success : NodeState.Failure;
+            return elapseTime > _duration ? NodeState.Success : NodeState.Running;
         }
          
         protected override void OnStop() {

@@ -43,7 +43,7 @@ namespace BTCore.Runtime
         [OnDeserialized]
         private void OnAfterDeserialize(StreamingContext context) {
             BTData.Nodes.ForEach(node => {
-                node.Init(this);
+                node.SetBlackboard(Blackboard);
             });
         }
         
@@ -66,6 +66,9 @@ namespace BTCore.Runtime
                     parentNode.AddChild(BTData.GetNodeByGuid(guid));
                 }
             }
+
+            // 重新绑定节点之间关系后，才能进行初始化操作
+            node.Init();
         }
 
         public void Enable() {

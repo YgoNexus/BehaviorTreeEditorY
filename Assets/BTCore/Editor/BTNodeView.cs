@@ -33,7 +33,7 @@ namespace BTCore.Editor
         private string _oldData;
         private TextField _commentField;
         private Image _abortIcon;
-        private AbortType _preAbortType;
+        private AbortType _preAbortType = AbortType.None;
         
         public BTNodeView NodeParent {
             get {
@@ -81,6 +81,7 @@ namespace BTCore.Editor
             }
             
             if (composite.AbortType == AbortType.None && _abortIcon != null) {
+                _preAbortType = composite.AbortType;
                 Remove(_abortIcon);
                 return;
             }

@@ -13,7 +13,7 @@ namespace BTCore.Runtime
 {
     public abstract class ParentNode : BTNode
     {
-        public int Index { get; protected set; }
+        public virtual int Index { get; protected set; }
         public List<string> ChildrenGuids { get; set; } = new();
         
         protected List<BTNode> Children { get; } = new();
