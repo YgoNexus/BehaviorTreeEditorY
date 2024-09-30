@@ -12,34 +12,41 @@ namespace BTCore.Runtime.Decorators
     public class Repeater : Decorator
     {
         public int RepeatCount { get; set; } = 1; // 设定为负数，一直循环执行
-        
+
         private int _counter = 0;
-        
-        protected override void OnStart() {
+
+        protected override void OnStart()
+        {
             base.OnStart();
             _counter = 0;
         }
 
-        protected override void OnStop() {
-            
+        protected override void OnStop()
+        {
+
         }
 
-        public override void OnChildExecute(int childIndex, NodeState nodeState) {
+        public override void OnChildExecute(int childIndex, NodeState nodeState)
+        {
             // 一直运行状态
-            if (RepeatCount == -1) {
+            if (RepeatCount == -1)
+            {
                 State = NodeState.Running;
                 return;
             }
 
-            if (_counter >= RepeatCount) {
+            if (_counter >= RepeatCount)
+            {
                 State = NodeState.Success;
+                return;
             }
 
             _counter++;
             State = nodeState != NodeState.Success ? nodeState : NodeState.Running;
         }
 
-        public override bool CanExecute() {
+        public override bool CanExecute()
+        {
             return RepeatCount == -1 || _counter < RepeatCount;
         }
     }
