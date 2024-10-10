@@ -11,54 +11,33 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
-
+using UnityEngine.Pool;
 namespace BTCore.Runtime.Unity
 {
-    public class BehaviorTree : MonoBehaviour
+    public class BehaviorTreeManager : MonoBehaviour
     {
-        [SerializeField]
-        private TextAsset _btAsset;
-        public Dictionary<int, BTree> TreeMap = new();
-        public BTree BTree { get; private set; }
+        public Dictionary<int, BTree> TreesMap = new();
+        public Dictionary<int, BTree> PausedTreeMap = new();
+        public string TestTreeName = "TestMoveNode";
         public bool flag = true;
+        ObjectPool<BTree> pool;
+        public BTree CreateBTree(TextAsset tAsset, int entityID) => CreateBTree(tAsset.text, entityID);
 
-
-        public void CreateBTree(int entityID = 0)
+        public BTree CreateBTree(string assetText, int entityID)
         {
-            if (_btAsset == null)
-            {
-                Debug.LogError("Please assign bt asset file.");
-                return;
-            }
-            //导入数据就行 节点状态显示是打开编辑器会实时刷新的 运行时
-            try
-            {
-                BTree = JsonConvert.DeserializeObject<BTree>(_btAsset.text, BTDef.SerializerSettingsAuto);
-                BTree?.RebuildTree();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"BT data deserialize failed, please check bt asset file!\n{e}");
-            }
-            if (entityID > 0)
-            {
-                TreeMap.Add(entityID, BTree);
-            }
-        }
-        public BTree CreateBTree(string assetText, int entityID = 0)
-        {
+            if (entityID < 0)
+                throw new ArgumentOutOfRangeException(nameof(entityID), "entityID must be greater than or equal to 0.");
             if (assetText == null)
-            {
                 throw new NullReferenceException("assetText is null");
-            }
             //导入数据就行 节点状态显示是打开编辑器会实时刷新的 运行时
             BTree tree = null;
             try
             {
                 tree = JsonConvert.DeserializeObject<BTree>(assetText, BTDef.SerializerSettingsAuto);
                 tree?.RebuildTree();
-                if (entityID > 0)
-                    TreeMap.Add(entityID, tree);
+                tree.Blackboard.SetValue("SelfID", entityID);
+
+                TreesMap.Add(entityID, tree);
             }
             catch (Exception e)
             {
@@ -67,23 +46,35 @@ namespace BTCore.Runtime.Unity
             return tree;
         }
 
+        // LL todo  object pool
+        public void ReleaseBTree(int entityID)
+        {
+            TreesMap.Remove(entityID);
+        }
+
+        private void Awake()
+        {
+            BTLogger.OnLogReceived += OnLogReceived;
+            //   pool = new ObjectPool<BTree>(
+            //createFunc: () => Instantiate(prefab),
+            //actionOnGet: obj => obj.SetActive(true),
+            //actionOnRelease: obj => obj.SetActive(false),
+            //defaultCapacity: 10);
+        }
         private void Update()
         {
-            return;
             if (Input.GetKeyDown(KeyCode.A))
             {
                 if (flag)
                 {
                     flag = false;
-                    BTLogger.OnLogReceived += OnLogReceived;
-                    CreateBTree();
-                    BTree?.Enable();
+                    var tree = CreateBTree(Resources.Load<TextAsset>($"BTreeData/{TestTreeName}"), 1);
+                    tree?.Enable();
                 }
             }
             if (flag == false)
             {
-                BTree?.Update();
-                foreach (var item in TreeMap)
+                foreach (var item in TreesMap)
                 {
                     item.Value.Update();
                 }

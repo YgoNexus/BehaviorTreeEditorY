@@ -20,26 +20,36 @@ namespace BTCore.Editor.Inspectors.Actions
         [ShowInInspector]
         [LabelText("Log")]
         [LabelWidth(100)]
-        [OnValueChanged("OnFieldValueChanged")]
         private SharedValueInspector<string> _message = new SharedValueInspector<string>();
-        
+
         private Log _logData;
 
-        protected override void OnImportData(Log data) {
+        protected override void OnImportData(Log data)
+        {
             _logData = data;
             _message.ImportData(data.Message);
+            _message.PropertyChanged += () =>
+            {
+                Comment = _logData.Message.Value;
+                base.OnFieldValueChanged();
+            };
+            Comment = _logData.Message.Value;
         }
 
-        public override BTNode ExportData() {
+        public override BTNode ExportData()
+        {
             return _logData;
         }
 
-        protected override void OnFieldValueChanged() {
+        protected override void OnFieldValueChanged()
+        {
             _logData.Message = _message.ExportData();
+
             base.OnFieldValueChanged();
         }
 
-        public override void Reset() {
+        public override void Reset()
+        {
             _message = new SharedValueInspector<string>();
             _logData = null;
         }

@@ -34,25 +34,31 @@ namespace BTCore.Editor
         private TextField _commentField;
         private Image _abortIcon;
         private AbortType _preAbortType = AbortType.None;
-        
-        public BTNodeView NodeParent {
-            get {
-                foreach (var edge in Input.connections) {
+
+        public BTNodeView NodeParent
+        {
+            get
+            {
+                foreach (var edge in Input.connections)
+                {
                     return edge.output.node as BTNodeView;
                 }
-                
+
                 return null;
             }
         }
-        
-        public BTNodeView(BTView btView) : base(BTEditorDef.BTNodeViewUxmlPath) {
+
+        public BTNodeView(BTView btView) : base(BTEditorDef.BTNodeViewUxmlPath)
+        {
             _btView = btView;
             AddCommentField();
             this.AddManipulator(new DoubleClickNode());
         }
 
-        private void AddCommentField() {
-            _commentField = new TextField {
+        private void AddCommentField()
+        {
+            _commentField = new TextField
+            {
                 multiline = true
             };
             outputContainer.Add(_commentField);
@@ -64,11 +70,14 @@ namespace BTCore.Editor
             _commentField.style.display = DisplayStyle.None;
         }
 
-        public void UpdateView() {
-            if (Node == null) {
+        public void UpdateView()
+        {
+            if (Node == null)
+            {
                 return;
             }
-            
+            UnityEngine.Debug.Log("update view");
+
             // 标题
             title = Node.Name;
             // 注释
@@ -76,23 +85,27 @@ namespace BTCore.Editor
             _commentField.value = Node.Comment;
 
             // 中断标识
-            if (Node is not Composite composite) {
+            if (Node is not Composite composite)
+            {
                 return;
             }
-            
-            if (composite.AbortType == AbortType.None && _abortIcon != null) {
+
+            if (composite.AbortType == AbortType.None && _abortIcon != null)
+            {
                 _preAbortType = composite.AbortType;
                 Remove(_abortIcon);
                 return;
             }
 
-            if (_preAbortType == composite.AbortType) {
+            if (_preAbortType == composite.AbortType)
+            {
                 return;
             }
-            
+
             _preAbortType = composite.AbortType;
             _abortIcon ??= CreateConditionalAbortIcon();
-            _abortIcon.image = composite.AbortType switch {
+            _abortIcon.image = composite.AbortType switch
+            {
                 AbortType.Self => Resources.Load<Texture2D>("ConditionalAbortSelfIcon"),
                 AbortType.LowerPriority => Resources.Load<Texture2D>("ConditionalAbortLowerPriorityIcon"),
                 AbortType.Both => Resources.Load<Texture2D>("ConditionalAbortBothIcon"),
@@ -100,9 +113,10 @@ namespace BTCore.Editor
             };
             Add(_abortIcon);
         }
-        
-        
-        private Image CreateConditionalAbortIcon() {
+
+
+        private Image CreateConditionalAbortIcon()
+        {
             _abortIcon = new Image();
             _abortIcon.style.width = 18;
             _abortIcon.style.height = 18;
@@ -113,7 +127,8 @@ namespace BTCore.Editor
             return _abortIcon;
         }
 
-        public void ImportData(BTNode data) {
+        public void ImportData(BTNode data)
+        {
             Node = data;
             title = data.Name;
             viewDataKey = data.Guid;
@@ -127,20 +142,24 @@ namespace BTCore.Editor
             UpdateView();
         }
 
-        public BTNode ExportData() {
+        public BTNode ExportData()
+        {
             return null;
         }
-        
+
         /// <summary>
         /// 创建节点的输入端口
         /// </summary>
-        private void CreateInputPorts() {
+        private void CreateInputPorts()
+        {
             // 行为树入口节点没有输入端口，其他节点的输入端口都是单连接
-            if (Node is not EntryNode) {
+            if (Node is not EntryNode)
+            {
                 Input = new NodePort(Direction.Input, Port.Capacity.Single);
             }
 
-            if (Input != null) {
+            if (Input != null)
+            {
                 Input.portName = string.Empty;
                 // 为了使节点上下Port(动态生成)对齐, 需要将其内部的VisualElement与Label垂直分布(默认水平) 
                 Input.style.flexDirection = FlexDirection.Column;
@@ -151,23 +170,28 @@ namespace BTCore.Editor
         /// <summary>
         /// 创建节点的输出端口
         /// </summary>
-        private void CreateOutputPorts() {
+        private void CreateOutputPorts()
+        {
             /* 1. 行为节点，条件节点没有输出端口
              * 2. 复合节点输出端口为多连接
              * 3. 其他节点的输出端口都为单连接 */
-            switch (Node) {
-                case Composite: {
-                    Output = new NodePort(Direction.Output, Port.Capacity.Multi);
-                    break;
-                }
+            switch (Node)
+            {
+                case Composite:
+                    {
+                        Output = new NodePort(Direction.Output, Port.Capacity.Multi);
+                        break;
+                    }
                 case Decorator:
-                case EntryNode: {
-                    Output = new NodePort(Direction.Output, Port.Capacity.Single);
-                    break;
-                }
+                case EntryNode:
+                    {
+                        Output = new NodePort(Direction.Output, Port.Capacity.Single);
+                        break;
+                    }
             }
 
-            if (Output != null) {
+            if (Output != null)
+            {
                 Output.portName = string.Empty;
                 // 为了使节点上下Port(动态生成)对齐, 需要将其内部的VisualElement与Label垂直分布(默认水平) 
                 Output.style.flexDirection = FlexDirection.ColumnReverse;
@@ -178,18 +202,20 @@ namespace BTCore.Editor
         /// <summary>
         /// 根据节点类型添加不同的样式，主要是显示不同的input部分颜色
         /// </summary>
-        private void SetupClasses() {
-            switch (Node) {
-                case Composite: 
+        private void SetupClasses()
+        {
+            switch (Node)
+            {
+                case Composite:
                     AddToClassList("composite");
                     break;
-                case Decorator: 
+                case Decorator:
                     AddToClassList("decorator");
                     break;
                 case Condition:
                     AddToClassList("condition");
                     break;
-                case Action:  
+                case Action:
                     AddToClassList("action");
                     break;
                 case EntryNode:
@@ -198,22 +224,25 @@ namespace BTCore.Editor
             }
         }
 
-        public override void SetPosition(Rect newPos) {
+        public override void SetPosition(Rect newPos)
+        {
             base.SetPosition(newPos);
 
             // 更新坐标数据之前，先记录下
-            if (string.IsNullOrEmpty(_oldData)) {
+            if (string.IsNullOrEmpty(_oldData))
+            {
                 _oldData = JsonConvert.SerializeObject(_btView.ExportData(), BTDef.SerializerSettingsAll);
             }
-            
+
             Node.PosX = newPos.x;
             Node.PosY = newPos.y;
         }
 
-        
-        public override void OnSelected() {
+
+        public override void OnSelected()
+        {
             base.OnSelected();
-            
+
             _oldData = null;
             OnNodeSelected?.Invoke(this);
             _recordPosition = new NodePosition(Node.PosX, Node.PosY);
@@ -222,40 +251,48 @@ namespace BTCore.Editor
         /// <summary>
         /// 没找到拖拽结束事件回调0.0，这里暂时以取消选中后，判断节点位置是否发生变化
         /// </summary>
-        public override void OnUnselected() {
+        public override void OnUnselected()
+        {
             base.OnUnselected();
 
             var curPos = new NodePosition(Node.PosX, Node.PosY);
-            if (!_recordPosition.IsChanged(curPos) || string.IsNullOrEmpty(_oldData)) {
+            if (!_recordPosition.IsChanged(curPos) || string.IsNullOrEmpty(_oldData))
+            {
                 return;
             }
-            
+
             var newData = JsonConvert.SerializeObject(_btView.ExportData(), BTDef.SerializerSettingsAll);
             var command = new NodeDataCommand(_btView, _oldData, newData);
             BTEditorWindow.Instance.AddCommand(command);
         }
 
-        public void SortChildren() {
+        public void SortChildren()
+        {
             // 组合节点下面的子节点在被任意移动时，需要根据子节点当前位置进行重行排序
-            if (Node is Composite composite) {
+            if (Node is Composite composite)
+            {
                 composite.ChildrenGuids.Sort(ChildNodeComparer);
             }
         }
 
-        private int ChildNodeComparer(string leftGuid, string rightGuid) {
+        private int ChildNodeComparer(string leftGuid, string rightGuid)
+        {
             var treeNodeData = _btView.ExportData();
-            if (treeNodeData == null) {
+            if (treeNodeData == null)
+            {
                 return 0;
             }
 
             var leftNode = treeNodeData.GetNodeByGuid(leftGuid);
             var rightNode = treeNodeData.GetNodeByGuid(rightGuid);
 
-            if (leftNode == null) {
+            if (leftNode == null)
+            {
                 return 1;
             }
 
-            if (rightGuid == null) {
+            if (rightGuid == null)
+            {
                 return -1;
             }
 
@@ -266,17 +303,20 @@ namespace BTCore.Editor
         /// <summary>
         /// 运行时，根据节点状态不同，应用不同的样式显示
         /// </summary>
-        public void UpdateStyleByState() {
-            if (!Application.isPlaying) {
+        public void UpdateStyleByState()
+        {
+            if (!Application.isPlaying)
+            {
                 return;
             }
-            
+
             RemoveFromClassList("inactive");
             RemoveFromClassList("running");
             RemoveFromClassList("failure");
             RemoveFromClassList("success");
 
-            switch (Node.State) {
+            switch (Node.State)
+            {
                 case NodeState.Inactive:
                     AddToClassList("inactive");
                     break;
@@ -291,18 +331,20 @@ namespace BTCore.Editor
                     break;
             }
         }
-        
+
         private readonly struct NodePosition
         {
             private readonly float _x;
             private readonly float _y;
 
-            public NodePosition(float x, float y) {
+            public NodePosition(float x, float y)
+            {
                 _x = x;
                 _y = y;
             }
 
-            public bool IsChanged(NodePosition other) {
+            public bool IsChanged(NodePosition other)
+            {
                 return Mathf.Abs(_x - other._x) > 0.1f || Mathf.Abs(_y - other._y) > 0.1f;
             }
         }

@@ -9,16 +9,17 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using BTCore.Runtime;
 using Sirenix.OdinInspector;
-
+using Sirenix.Serialization;
 namespace BTCore.Editor.Inspectors
 {
     public abstract class SharedValueInspector
     {
         public abstract void RebindValueName();
     }
-    
+
     [HideReferenceObjectPicker]
     [InlineProperty]
     public class SharedValueInspector<T> : SharedValueInspector, IDataSerializable<SharedValue<T>>
@@ -39,31 +40,41 @@ namespace BTCore.Editor.Inspectors
         [InlineButton("EditRawValue", "↺")]
         [OnValueChanged("OnFieldValueChanged")]
         private string _bindValueName = NONE_VALUE;
-        
+
+        public System.Action PropertyChanged;
+
         private const string NONE_VALUE = "(None)";
-        
-        private void SelectBlackboardValue() {
+
+        private void SelectBlackboardValue()
+        {
             _showRawValue = false;
         }
-        
-        private void EditRawValue() {
+
+        private void EditRawValue()
+        {
             _showRawValue = true;
             _bindValueName = NONE_VALUE;
         }
 
         private SharedValue<T> _sharedValue;
         private bool _showRawValue = true;
+
+
         private bool _showValueName => !_showRawValue;
 
-        private IEnumerable GetValueNames() {
+        private IEnumerable GetValueNames()
+        {
             var blackboard = BTEditorWindow.Instance.Blackboard;
-            if (blackboard == null) {
+            if (blackboard == null)
+            {
                 return new List<string>() { NONE_VALUE };
             }
 
             var valueNames = new List<string>();
-            foreach (var blackboardValue in blackboard.Values) {
-                if (blackboardValue.Type == typeof(T)) {
+            foreach (var blackboardValue in blackboard.Values)
+            {
+                if (blackboardValue.Type == typeof(T))
+                {
                     valueNames.Add(blackboardValue.Name);
                 }
             }
@@ -71,40 +82,53 @@ namespace BTCore.Editor.Inspectors
             return valueNames;
         }
 
-        public void ImportData(SharedValue<T> data) {
+        public void ImportData(SharedValue<T> data)
+        {
+
             _sharedValue = data;
             _showRawValue = string.IsNullOrEmpty(data.ValueName);
-            
-            if (_showRawValue) {
+
+            if (_showRawValue)
+            {
                 _rawValue = data.RawValue;
             }
-            else {
+            else
+            {
                 _bindValueName = data.ValueName;
             }
         }
 
-        public SharedValue<T> ExportData() {
+
+        public SharedValue<T> ExportData()
+        {
             return _sharedValue;
         }
 
-        private void OnFieldValueChanged() {
+        private void OnFieldValueChanged()
+        {
             _sharedValue.RawValue = _rawValue;
             _sharedValue.ValueName = _bindValueName == NONE_VALUE ? string.Empty : _bindValueName;
+            PropertyChanged?.Invoke();
         }
 
-        public override void RebindValueName() {
-            if (_bindValueName == NONE_VALUE) {
+        public override void RebindValueName()
+        {
+            if (_bindValueName == NONE_VALUE)
+            {
                 return;
             }
-            
+
             var blackboard = BTEditorWindow.Instance.Blackboard;
-            if (blackboard == null) {
+            if (blackboard == null)
+            {
                 return;
             }
 
             var isFind = false;
-            foreach (var key in blackboard.Values) {
-                if (key.Type == typeof(T) && key.Name == _bindValueName) {
+            foreach (var key in blackboard.Values)
+            {
+                if (key.Type == typeof(T) && key.Name == _bindValueName)
+                {
                     isFind = true;
                 }
             }

@@ -15,21 +15,22 @@ namespace BTCore.Editor
     {
         public static BTEditorWindow Instance;
         private BTView _btView { get; set; }
-        
+
         private NodeInspectorView _nodeInspectorView;
         private ToolbarMenu _toolbarMenu;
+        private ToolbarMenu _toolbarRuntimeTreeMenu;
         private BlackboardView _blackboardView;
 
         private Button _undoButton;
         private Button _redoButton;
 
         private BTUndoRedo _undoRedo;
-        
+
         public Blackboard Blackboard => _blackboardView.ExportData();
         public BTView BTView => _btView;
 
         private BTree _preBTree;
-        
+
         [MenuItem("Tools/BehaviorTree/BTEditorWindow")]
         public static void OpenWindow()
         {
@@ -38,19 +39,21 @@ namespace BTCore.Editor
             wnd.minSize = new Vector2(800, 600);
         }
 
-        public void CreateGUI() {
+        public void CreateGUI()
+        {
             Instance = this;
 
             // Each editor window contains a root VisualElement object
             var root = rootVisualElement;
-        
+
             // Import UXML
             var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(BTEditorDef.BTEditorWindowUxmlPath);
             visualTree.CloneTree(root);
 
             _btView = root.Q<BTView>();
             _nodeInspectorView = root.Q<NodeInspectorView>();
-            _toolbarMenu = root.Q<ToolbarMenu>();
+            _toolbarMenu = root.Q<ToolbarMenu>("AssetMenu");
+            _toolbarRuntimeTreeMenu = root.Q<ToolbarMenu>("RuntimeTreeMenu");
             _blackboardView = root.Q<BlackboardView>();
             _undoButton = root.Q<Button>("undo-button");
             _redoButton = root.Q<Button>("redo-button");
@@ -58,92 +61,111 @@ namespace BTCore.Editor
             _undoButton.clicked -= OnUndo;
             _undoButton.clicked += OnUndo;
             _undoButton.SetEnabled(false);
-            
+
             _redoButton.clicked -= OnRedo;
             _redoButton.clicked += OnRedo;
             _redoButton.SetEnabled(false);
-            
+
             _toolbarMenu.RegisterCallback<MouseEnterEvent>(OnEnterToolbarMenu);
-            
+            _toolbarRuntimeTreeMenu.RegisterCallback<MouseEnterEvent>(OnEnterRuntimeTreeMenu);
+
             _blackboardView.OnValueListChanged = OnBlackboardValueChanged;
             _btView.OnNodeSelected = OnNodeSelected;
-            
+
             _undoRedo = new BTUndoRedo();
-            
+
             OnSelectionChange();
         }
 
-        private void OnUndo() {
+        private void OnUndo()
+        {
             _undoRedo.Undo();
             UpdateUndoRedoButtonState();
         }
 
-        private void OnRedo() {
+        private void OnRedo()
+        {
             _undoRedo.Redo();
             UpdateUndoRedoButtonState();
         }
 
-        public void AddCommand(ICommand command) {
+        public void AddCommand(ICommand command)
+        {
             _undoRedo.AddCommand(command);
             UpdateUndoRedoButtonState();
         }
 
-        private void UpdateUndoRedoButtonState() {
+        private void UpdateUndoRedoButtonState()
+        {
             _undoButton.SetEnabled(_undoRedo.CanUndo);
             _redoButton.SetEnabled(_undoRedo.CanRedo);
         }
-        
-        private void OnBlackboardValueChanged() {
+
+        private void OnBlackboardValueChanged()
+        {
             _nodeInspectorView.UpdateNodeBindValues();
         }
 
-        private void OnNodeSelected(BTNodeView nodeView) {
+        private void OnNodeSelected(BTNodeView nodeView)
+        {
             _nodeInspectorView.UpdateSelection(nodeView);
         }
 
-        public void ClearNodeSelectedInspector() {
+        public void ClearNodeSelectedInspector()
+        {
             _nodeInspectorView.ClearSelection();
         }
 
-        private void OnEnterToolbarMenu(MouseEnterEvent evt) {
+        private void OnEnterToolbarMenu(MouseEnterEvent evt)
+        {
             _toolbarMenu.menu.MenuItems().Clear();
-            foreach (var filePath in Directory.GetFiles(BTEditorDef.DataDir, "*.json")) {
+            foreach (var filePath in Directory.GetFiles(BTEditorDef.DataDir, "*.json"))
+            {
                 var fileName = Path.GetFileName(filePath);
-                _toolbarMenu.menu.AppendAction($"{fileName}", _ => {
-                    var btData = (BTree) null;
-                    try {
+                _toolbarMenu.menu.AppendAction($"{fileName}", _ =>
+                {
+                    var btData = (BTree)null;
+                    try
+                    {
                         var json = File.ReadAllText(filePath);
                         btData = JsonConvert.DeserializeObject<BTree>(json, BTDef.SerializerSettingsAuto);
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         Debug.LogError($"反序列BT数据失败，path: {filePath} ex: {ex}");
                         return;
                     }
-                    
+
                     SelectNewTree(btData);
                 });
             }
-            
+
             _toolbarMenu.menu.AppendSeparator();
-            
+
             // 保存当前行为树配置数据
-            _toolbarMenu.menu.AppendAction("Save", _ => {
+            _toolbarMenu.menu.AppendAction("Save", _ =>
+            {
                 var treeNodeData = _btView.ExportData();
-                
+
                 // 入口子节点为空
-                if (string.IsNullOrEmpty(treeNodeData.EntryNode.ChildGuid)) {
+                if (string.IsNullOrEmpty(treeNodeData.EntryNode.ChildGuid))
+                {
                     ShowNotification("BT入口不能为空");
                     return;
                 }
-                
-                var path = EditorUtility.SaveFilePanel("另存为", BTEditorDef.DataDir, BTEditorDef.DefaultFileName,
-                    BTEditorDef.DataExt);
-                if (string.IsNullOrEmpty(path)) {
+
+                var path = EditorUtility.SaveFilePanel("另存为", "", BTEditorDef.DefaultFileName, BTEditorDef.DataExt);
+                BTEditorDef.DefaultFileName = Path.GetFileName(path);
+
+                if (string.IsNullOrEmpty(path))
+                {
                     return;
                 }
 
-                try {
-                    var btData = new BTree {
+                try
+                {
+                    var btData = new BTree
+                    {
                         BTData = _btView.ExportData(),
                         Blackboard = Blackboard
                     };
@@ -151,94 +173,136 @@ namespace BTCore.Editor
                     File.WriteAllText(path, json);
                     AssetDatabase.Refresh();
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     ShowNotification("BT数据保存失败");
                     Debug.LogError($"BT树数据序列化失败，ex: {e}");
                     return;
                 }
-                
+
                 ShowNotification("BT数据保存成功");
                 Debug.Log($"BT数据保存成功，路径：{path}");
             });
         }
 
-        private void OnInspectorUpdate() {
-            if (EditorApplication.isPlaying) {
+        void OnEnterRuntimeTreeMenu(MouseEnterEvent evt)
+        {
+            _toolbarRuntimeTreeMenu.menu.MenuItems().Clear();
+            if (EditorApplication.isPlaying)
+            {
+                var tm = GameObject.FindObjectOfType<BehaviorTreeManager>(true);
+                if (tm != null && tm.TreesMap.Count > 0)
+                {
+                    _toolbarRuntimeTreeMenu.menu.AppendSeparator();
+                    foreach (var item in tm.TreesMap)
+                    {
+                        _toolbarRuntimeTreeMenu.menu.AppendAction($"{item.Key}", _ =>
+                        {
+                            SelectNewTree(item.Value);
+                        });
+                    }
+                }
+
+            }
+            _toolbarRuntimeTreeMenu.menu.AppendSeparator();
+        }
+        private void OnInspectorUpdate()
+        {
+            if (EditorApplication.isPlaying)
+            {
                 _btView.UpdateNodesStyle();
             }
         }
 
-        private void OnEnable() {
+        private void OnEnable()
+        {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
-        private void OnDisable() {
+        private void OnDisable()
+        {
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
         }
 
-        private void OnPlayModeStateChanged(PlayModeStateChange stateChange) {
-            if (stateChange == PlayModeStateChange.EnteredEditMode) {
+        private void OnPlayModeStateChanged(PlayModeStateChange stateChange)
+        {
+            if (stateChange == PlayModeStateChange.EnteredEditMode)
+            {
                 OnSelectionChange();
             }
         }
 
-        private void OnSelectionChange() {
-            if (_btView == null) {
+        private void OnSelectionChange()
+        {
+            if (_btView == null)
+            {
                 return;
             }
 
-            var btData = (BTree) null;
-            var behaviorTree = (BehaviorTree) null;
-            
+            var btData = (BTree)null;
+            var behaviorTree = (BehaviorTree)null;
+
             // 1. 优先判断是否选中运行时的BT
             if (Selection.activeGameObject != null &&
-                (behaviorTree = Selection.activeGameObject.GetComponent<BehaviorTree>())) {
-                if (EditorApplication.isPlaying) {
+                (behaviorTree = Selection.activeGameObject.GetComponent<BehaviorTree>()))
+            {
+                if (EditorApplication.isPlaying)
+                {
                     btData = behaviorTree.BTree;
                 }
-                else {
+                else
+                {
                     behaviorTree.CreateBTree();
                     btData = behaviorTree.BTree;
                 }
             }
-            
+
             // 2. 再判断选中的资源可以反序列化为BT数据
-            if (btData == null && Selection.activeObject != null) {
+            if (btData == null && Selection.activeObject != null)
+            {
                 var path = AssetDatabase.GetAssetPath(Selection.activeObject);
-                if (!path.StartsWith(BTEditorDef.DataDir) || !path.EndsWith(BTEditorDef.DataExt)) {
+                if (!path.StartsWith(BTEditorDef.DataDir) || !path.EndsWith(BTEditorDef.DataExt))
+                {
                     SelectNewTree(new BTree());
                     return;
                 }
-            
-                try {
+
+                try
+                {
                     var json = File.ReadAllText(path);
                     btData = JsonConvert.DeserializeObject<BTree>(json, BTDef.SerializerSettingsAuto);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     ShowNotification("导入BT数据失败");
                     Debug.LogError($"导入BT数据失败，path: {path} ex: {e}");
                 }
             }
-            
+
             SelectNewTree(btData ?? new BTree());
         }
 
-        public void ShowNotification(string message, double fadeoutWait = 4.0) {
+        public void ShowNotification(string message, double fadeoutWait = 4.0)
+        {
             ShowNotification(new GUIContent(message), fadeoutWait);
         }
-        
-        public void SelectNewTree(BTree bTree) {
-            if (_btView == null) {
+
+        public void SelectNewTree(BTree bTree)
+        {
+            if (_btView == null)
+            {
                 return;
             }
 
-            if (_preBTree == bTree) {
+            if (_preBTree == bTree)
+            {
                 return;
             }
             _preBTree = bTree;
-            
+
             // 每次导入新的BT数据时，需要清空undo、redo保存数据
-            if (_undoRedo != null) {
+            if (_undoRedo != null)
+            {
                 _undoRedo.Clear();
                 UpdateUndoRedoButtonState();
             }

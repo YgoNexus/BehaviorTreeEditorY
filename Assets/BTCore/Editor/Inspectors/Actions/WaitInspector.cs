@@ -23,24 +23,28 @@ namespace BTCore.Editor.Inspectors.Actions
         [LabelWidth(100)]
         [OnValueChanged("OnFieldValueChanged")]
         private int _duration;
-        
+
         private Wait _waitData;
 
-        protected override void OnImportData(Wait data) {
+        protected override void OnImportData(Wait data)
+        {
             _waitData = data;
             _duration = data.Duration;
         }
 
-        public override BTNode ExportData() {
+        public override BTNode ExportData()
+        {
             return _waitData;
         }
 
-        protected override void OnFieldValueChanged() {
+        protected override void OnFieldValueChanged()
+        {
             _waitData.Duration = _duration;
             base.OnFieldValueChanged();
         }
 
-        public override void Reset() {
+        public override void Reset()
+        {
             _duration = 0;
             _waitData = null;
         }
