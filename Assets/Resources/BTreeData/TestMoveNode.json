@@ -1,5 +1,6 @@
 {
   "$type": "BTCore.Runtime.BTree, BTRuntime",
+  "TreeName": "TestMoveNode",
   "TreeState": 0,
   "BTData": {
     "$type": "BTCore.Runtime.BTData, BTRuntime",

@@ -167,7 +167,8 @@ namespace BTCore.Editor
                     var btData = new BTree
                     {
                         BTData = _btView.ExportData(),
-                        Blackboard = Blackboard
+                        Blackboard = Blackboard,
+                        TreeName = Path.GetFileNameWithoutExtension(path),
                     };
                     var json = JsonConvert.SerializeObject(btData, BTDef.SerializerSettingsAll);
                     File.WriteAllText(path, json);
@@ -308,6 +309,7 @@ namespace BTCore.Editor
             }
 
             _btView.ImportData(bTree.BTData);
+            _btView.RefreshTreeName(bTree.TreeName);
             _blackboardView.ImportData(bTree.Blackboard);
         }
     }

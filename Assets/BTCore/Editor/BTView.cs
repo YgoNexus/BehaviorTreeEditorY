@@ -25,7 +25,7 @@ namespace BTCore.Editor
     public class BTView : GraphView, IDataSerializable<BTData>
     {
         public new class UxmlFactory : UxmlFactory<BTView, UxmlTraits> { }
-
+        private Label LblName = new Label();
         private BTData _btData;
 
         public Action<BTNodeView> OnNodeSelected;
@@ -34,8 +34,6 @@ namespace BTCore.Editor
         private readonly Vector2 _entryPos = new Vector2(225f, 150f);
         private readonly List<GraphElement> _graphElements = new();
         private bool _isRemoveOnly = false;
-
-        private Image _abortIcon;
 
         public BTView()
         {
@@ -51,8 +49,25 @@ namespace BTCore.Editor
             // 添加BTView样式，主要是格子背景展示
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(BTEditorDef.BTViewStylePath);
             styleSheets.Add(styleSheet);
-        }
+            // 添加Label到GraphView
+            //Insert(1, LblName);  // 确保文本在背景层，保证其他UI元素不被阻挡
+            Add(LblName);
+            LblName.style.position = Position.Absolute;
+            LblName.style.top = 4;  // 设置文本的位置
+            LblName.style.left = 8;
+            LblName.style.unityTextAlign = TextAnchor.MiddleCenter;  // 居中对齐
+            LblName.style.color = new Color(1, 1, 1, 0.6f);
+            LblName.style.fontSize = 20;
 
+            // 设置背景为透明
+            LblName.style.backgroundColor = new Color(0, 0, 0, 0); // 完全透明的背景
+            LblName.BringToFront();// 设置文本在UI中的顺序，使其在其他元素之上
+        }
+        public void RefreshTreeName(string name)
+        {
+            // 创建Label并设置背景为透明
+            LblName.text = name;
+        }
         private void RegisterCopyAndPasteEvent()
         {
             serializeGraphElements = elements =>
@@ -195,6 +210,7 @@ namespace BTCore.Editor
                 AddGraphElement(colorGroup);
                 AddElement(colorGroup);
             }
+
         }
 
         private void ClearGraphs()
