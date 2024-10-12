@@ -76,8 +76,6 @@ namespace BTCore.Editor
             {
                 return;
             }
-            UnityEngine.Debug.Log("update view");
-
             // 标题
             title = Node.Name;
             // 注释
