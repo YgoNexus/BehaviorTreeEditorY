@@ -63,7 +63,7 @@ namespace BTCore.Editor
             };
             outputContainer.Add(_commentField);
             _commentField.BringToFront();
-            _commentField.style.maxWidth = 150;
+            _commentField.style.maxWidth = outputContainer.style.maxWidth;
             _commentField.style.whiteSpace = WhiteSpace.Normal;
             _commentField.style.backgroundColor = new StyleColor(new Color(1, 0, 0, 1));
             _commentField.SetEnabled(false);
@@ -203,13 +203,13 @@ namespace BTCore.Editor
                 //Output.style.flexDirection = FlexDirection.Column;
                 //// 获取Port中的连接点（connectorBox）并调整它的大小
                 //VisualElement connector = Output.Q("connector");
-                VisualElement label = Output.Q("type");
-                if (label != null)
-                {
-                    Debug.Log(label);
-                    label.style.height = 0;
-                    label.style.width = 0;
-                }
+                //VisualElement label = Output.Q("type");
+                //if (label != null)
+                //{
+                //    Debug.Log(label);
+                //    label.style.height = 0;
+                //    label.style.width = 0;
+                //}
                 //if (connector != null)
                 //{
                 //    //connector.style.width = 15;  // 将连接点的宽度设置为10
