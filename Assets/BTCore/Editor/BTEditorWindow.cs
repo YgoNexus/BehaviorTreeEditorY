@@ -19,6 +19,7 @@ namespace BTCore.Editor
         private NodeInspectorView _nodeInspectorView;
         private ToolbarMenu _toolbarMenu;
         private ToolbarMenu _toolbarRuntimeTreeMenu;
+        private ToolbarButton _saveBtn;
         private BlackboardView _blackboardView;
 
         private Button _undoButton;
@@ -30,6 +31,7 @@ namespace BTCore.Editor
         public BTView BTView => _btView;
 
         private BTree _preBTree;
+        public string OpeningFilePath = string.Empty;
 
         [MenuItem("Tools/BehaviorTree/BTEditorWindow")]
         public static void OpenWindow()
@@ -54,6 +56,7 @@ namespace BTCore.Editor
             _nodeInspectorView = root.Q<NodeInspectorView>();
             _toolbarMenu = root.Q<ToolbarMenu>("AssetMenu");
             _toolbarRuntimeTreeMenu = root.Q<ToolbarMenu>("RuntimeTreeMenu");
+            _saveBtn = root.Q<ToolbarButton>("SaveBtn");
             _blackboardView = root.Q<BlackboardView>();
             _undoButton = root.Q<Button>("undo-button");
             _redoButton = root.Q<Button>("redo-button");
@@ -68,6 +71,7 @@ namespace BTCore.Editor
 
             _toolbarMenu.RegisterCallback<MouseEnterEvent>(OnEnterToolbarMenu);
             _toolbarRuntimeTreeMenu.RegisterCallback<MouseEnterEvent>(OnEnterRuntimeTreeMenu);
+            _saveBtn.RegisterCallback<MouseUpEvent>(OnClickSaveBtn);
 
             _blackboardView.OnValueListChanged = OnBlackboardValueChanged;
             _btView.OnNodeSelected = OnNodeSelected;
@@ -76,6 +80,7 @@ namespace BTCore.Editor
 
             OnSelectionChange();
         }
+
 
         private void OnUndo()
         {
@@ -135,18 +140,17 @@ namespace BTCore.Editor
                         Debug.LogError($"反序列BT数据失败，path: {filePath} ex: {ex}");
                         return;
                     }
-
-                    SelectNewTree(btData);
+                    SelectNewTree(btData, filePath);
                 });
             }
 
             _toolbarMenu.menu.AppendSeparator();
 
             // 保存当前行为树配置数据
-            _toolbarMenu.menu.AppendAction("Save", _ =>
+            _toolbarMenu.menu.AppendAction("Save As", _ =>
             {
                 var treeNodeData = _btView.ExportData();
-
+                //
                 // 入口子节点为空
                 if (string.IsNullOrEmpty(treeNodeData.EntryNode.ChildGuid))
                 {
@@ -207,6 +211,48 @@ namespace BTCore.Editor
             }
             _toolbarRuntimeTreeMenu.menu.AppendSeparator();
         }
+
+
+        private void OnClickSaveBtn(MouseUpEvent evt)
+        {
+            if (string.IsNullOrEmpty(this.OpeningFilePath))
+            {
+                ShowNotification("保存失败,路径为空");
+                return;
+            }
+
+            var treeNodeData = _btView.ExportData();
+            //
+            // 入口子节点为空
+            if (string.IsNullOrEmpty(treeNodeData.EntryNode.ChildGuid))
+            {
+                ShowNotification("BT入口不能为空");
+                return;
+            }
+
+            try
+            {
+                var btData = new BTree
+                {
+                    BTData = _btView.ExportData(),
+                    Blackboard = Blackboard,
+                    TreeName = Path.GetFileNameWithoutExtension(OpeningFilePath),
+                };
+                var json = JsonConvert.SerializeObject(btData, BTDef.SerializerSettingsAll);
+                File.WriteAllText(OpeningFilePath, json);
+                AssetDatabase.Refresh();
+            }
+            catch (Exception e)
+            {
+                ShowNotification("BT数据保存失败");
+                Debug.LogError($"BT序列化失败->{OpeningFilePath}，ex: {e}");
+                return;
+            }
+
+            ShowNotification($"BT保存-> {OpeningFilePath}");
+            Debug.Log($"BT数据保存成功，路径：{OpeningFilePath}");
+        }
+
         private void OnInspectorUpdate()
         {
             if (EditorApplication.isPlaying)
@@ -288,8 +334,9 @@ namespace BTCore.Editor
             ShowNotification(new GUIContent(message), fadeoutWait);
         }
 
-        public void SelectNewTree(BTree bTree)
+        public void SelectNewTree(BTree bTree, string filePath = "")
         {
+            OpeningFilePath = filePath;
             if (_btView == null)
             {
                 return;

@@ -18,42 +18,49 @@ namespace BTCore.Editor.Inspectors.MonoBehaviours
     {
         private SerializedProperty _btAsset;
         private BehaviorTree _behaviorTree;
-        
-        private void OnEnable() {
+
+        private void OnEnable()
+        {
             _btAsset = serializedObject.FindProperty("_btAsset");
-            _behaviorTree = (BehaviorTree) target;
+            _behaviorTree = (BehaviorTree)target;
         }
 
-        public override void OnInspectorGUI() {
+        public override void OnInspectorGUI()
+        {
             serializedObject.Update();
-            
+
             EditorGUILayout.BeginHorizontal();
             EditorGUI.BeginChangeCheck();
-            
+
             EditorGUILayout.PropertyField(_btAsset, new GUIContent("BTAsset"));
             // 立即更新变化值
             serializedObject.ApplyModifiedProperties();
             // BTAsset有变化时，若BT窗口已经打开需更新显示
-            if (EditorGUI.EndChangeCheck()) {
-                if (BTEditorWindow.Instance == null) {
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (BTEditorWindow.Instance == null)
+                {
                     return;
                 }
                 _behaviorTree.CreateBTree();
-                BTEditorWindow.Instance.SelectNewTree(_behaviorTree.BTree);
+                BTEditorWindow.Instance.SelectNewTree(_behaviorTree.BTree, BTEditorWindow.Instance.OpeningFilePath);
             }
-            
-            if (GUILayout.Button("Open", GUILayout.Width(50))) {
-                if (BTEditorWindow.Instance == null) {
+
+            if (GUILayout.Button("Open", GUILayout.Width(50)))
+            {
+                if (BTEditorWindow.Instance == null)
+                {
                     BTEditorWindow.OpenWindow();
                 }
 
-                if (_behaviorTree.BTree == null) {
+                if (_behaviorTree.BTree == null)
+                {
                     _behaviorTree.CreateBTree();
                 }
-                
-                BTEditorWindow.Instance.SelectNewTree(_behaviorTree.BTree);
+
+                BTEditorWindow.Instance.SelectNewTree(_behaviorTree.BTree, BTEditorWindow.Instance.OpeningFilePath);
             }
-            
+
             EditorGUILayout.EndHorizontal();
         }
     }

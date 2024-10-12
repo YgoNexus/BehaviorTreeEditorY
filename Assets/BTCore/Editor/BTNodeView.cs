@@ -221,7 +221,7 @@ namespace BTCore.Editor
                 {
                     label.style.height = 0;
                     label.style.width = 0;
-                    // if u do not set to zero ,cause output port do not match input port at horization.
+                    // if u do not set to zero ,cause output port do not match input port at horizontal.
                     label.style.marginLeft = 0;
                     label.style.marginRight = 0;
                 }
