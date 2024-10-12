@@ -40,7 +40,7 @@ namespace BTCore.Editor.Inspectors
         [InlineButton("EditRawValue", "↺")]
         [OnValueChanged("OnFieldValueChanged")]
         private string _bindValueName = NONE_VALUE;
-
+        [UnityEngine.HideInInspector]
         public System.Action PropertyChanged;
 
         private const string NONE_VALUE = "(None)";

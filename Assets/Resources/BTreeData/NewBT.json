@@ -1,0 +1,93 @@
+{
+  "$type": "BTCore.Runtime.BTree, BTRuntime",
+  "TreeName": "NewBT",
+  "TreeState": 0,
+  "BTData": {
+    "$type": "BTCore.Runtime.BTData, BTRuntime",
+    "EntryNode": {
+      "$type": "BTCore.Runtime.EntryNode, BTRuntime",
+      "State": 0,
+      "ChildGuid": "4321300a-fed5-4840-bf65-6e58e8f05fe2",
+      "Name": "EntryNode",
+      "Guid": "890b16c9-1a45-4475-937a-dfb9cf053b13",
+      "Comment": null,
+      "PosX": 225.0,
+      "PosY": 150.0
+    },
+    "Nodes": {
+      "$type": "System.Collections.Generic.List`1[[BTCore.Runtime.BTNode, BTRuntime]], mscorlib",
+      "$values": [
+        {
+          "$type": "BTCore.Runtime.EntryNode, BTRuntime",
+          "State": 0,
+          "ChildGuid": "4321300a-fed5-4840-bf65-6e58e8f05fe2",
+          "Name": "EntryNode",
+          "Guid": "890b16c9-1a45-4475-937a-dfb9cf053b13",
+          "Comment": null,
+          "PosX": 225.0,
+          "PosY": 150.0
+        },
+        {
+          "$type": "BTCore.Runtime.Composites.Selector, BTRuntime",
+          "AbortType": 1,
+          "State": 0,
+          "Index": 0,
+          "ChildrenGuids": {
+            "$type": "System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+            "$values": [
+              "e456fd4b-5255-46c6-9b83-5072fc58d277"
+            ]
+          },
+          "Name": "Selector",
+          "Guid": "4321300a-fed5-4840-bf65-6e58e8f05fe2",
+          "Comment": null,
+          "PosX": 225.0,
+          "PosY": 217.68
+        },
+        {
+          "$type": "BTCore.Runtime.Actions.Log, BTRuntime",
+          "State": 0,
+          "Message": {
+            "$type": "BTCore.Runtime.SharedValue`1[[System.String, mscorlib]], BTRuntime",
+            "ValueName": "",
+            "RawValue": "123",
+            "Value": "123"
+          },
+          "Name": "Log",
+          "Guid": "e456fd4b-5255-46c6-9b83-5072fc58d277",
+          "Comment": "123",
+          "PosX": 225.0,
+          "PosY": 269.0
+        },
+        {
+          "$type": "Examples.AbortType.ConditionHP, Assembly-CSharp",
+          "State": 0,
+          "Name": "ConditionHP",
+          "Guid": "b1d951b2-2743-47ec-bb68-0f1aa7f3c638",
+          "Comment": null,
+          "PosX": 225.0,
+          "PosY": 325.2568
+        }
+      ]
+    },
+    "StickNotes": {
+      "$type": "System.Collections.Generic.List`1[[BTCore.Runtime.OtherNodes.StickNoteNode, BTRuntime]], mscorlib",
+      "$values": []
+    },
+    "NodeGroups": {
+      "$type": "System.Collections.Generic.List`1[[BTCore.Runtime.OtherNodes.GroupNode, BTRuntime]], mscorlib",
+      "$values": []
+    }
+  },
+  "Blackboard": {
+    "$type": "BTCore.Runtime.Blackboards.Blackboard, BTRuntime",
+    "Values": {
+      "$type": "System.Collections.Generic.List`1[[BTCore.Runtime.Blackboards.BlackboardValue, BTRuntime]], mscorlib",
+      "$values": []
+    }
+  },
+  "Settings": {
+    "$type": "BTCore.Runtime.BTSettings, BTRuntime",
+    "RestartWhenComplete": false
+  }
+}

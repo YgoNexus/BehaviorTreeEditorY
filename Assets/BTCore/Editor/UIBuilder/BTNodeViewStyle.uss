@@ -74,7 +74,7 @@
 
 .entry #input {
     background-color: rgb(236, 225, 221);
-    min-height: 20px;
+    min-height: 13px;
 }
 
 .composite #input {

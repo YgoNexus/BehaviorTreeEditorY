@@ -160,9 +160,12 @@ namespace BTCore.Editor
 
             if (Input != null)
             {
+                //Input.style.alignContent = Align.Center;
                 Input.portName = string.Empty;
                 // 为了使节点上下Port(动态生成)对齐, 需要将其内部的VisualElement与Label垂直分布(默认水平) 
-                Input.style.flexDirection = FlexDirection.Column;
+                //Input.style.flexDirection = FlexDirection.Column;
+                Input.style.flexDirection = FlexDirection.Row;
+                Input.style.height = 12;
                 inputContainer.Add(Input);
             }
         }
@@ -193,8 +196,28 @@ namespace BTCore.Editor
             if (Output != null)
             {
                 Output.portName = string.Empty;
+                Output.style.height = 12;
+                //Output.style.alignContent = Align.Center;
+                Output.style.flexDirection = FlexDirection.Row;
                 // 为了使节点上下Port(动态生成)对齐, 需要将其内部的VisualElement与Label垂直分布(默认水平) 
-                Output.style.flexDirection = FlexDirection.ColumnReverse;
+                //Output.style.flexDirection = FlexDirection.Column;
+                //// 获取Port中的连接点（connectorBox）并调整它的大小
+                //VisualElement connector = Output.Q("connector");
+                VisualElement label = Output.Q("type");
+                if (label != null)
+                {
+                    Debug.Log(label);
+                    label.style.height = 0;
+                    label.style.width = 0;
+                }
+                //if (connector != null)
+                //{
+                //    //connector.style.width = 15;  // 将连接点的宽度设置为10
+                //    //connector.style.height = 20;  // 将连接点的高度设置为10
+
+                //    //     connector.style.marginTop = -20;  // 调整边距
+                //    //    connector.style.marginLeft = -20;
+                //}
                 outputContainer.Add(Output);
             }
         }

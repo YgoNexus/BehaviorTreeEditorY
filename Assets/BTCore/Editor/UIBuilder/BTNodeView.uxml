@@ -15,7 +15,7 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name="divider" class="horizontal" />
-                <ui:VisualElement name="output" />
+                <ui:VisualElement name="output" style="width: auto; height: auto; max-height: none;" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

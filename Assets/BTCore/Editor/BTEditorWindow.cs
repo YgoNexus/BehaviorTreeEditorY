@@ -36,7 +36,7 @@ namespace BTCore.Editor
         {
             var wnd = GetWindow<BTEditorWindow>();
             wnd.titleContent = new GUIContent("BTEditorWindow");
-            wnd.minSize = new Vector2(800, 600);
+            wnd.minSize = new Vector2(480, 270);
         }
 
         public void CreateGUI()
