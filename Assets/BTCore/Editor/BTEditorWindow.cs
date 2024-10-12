@@ -33,7 +33,7 @@ namespace BTCore.Editor
         private BTree _preBTree;
         public string OpeningFilePath = string.Empty;
 
-        [MenuItem("Tools/BehaviorTree/BTEditorWindow")]
+        [MenuItem("LLTools/BehaviorTree/BTEditorWindow", false, 101)]
         public static void OpenWindow()
         {
             var wnd = GetWindow<BTEditorWindow>();
