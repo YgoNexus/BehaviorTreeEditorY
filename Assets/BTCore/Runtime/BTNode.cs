@@ -7,9 +7,8 @@
 //    Modified:  2023-09-29
 //============================================================
 
-using System;
-using System.Reflection;
 using BTCore.Runtime.Blackboards;
+using System.Reflection;
 
 namespace BTCore.Runtime
 {
@@ -21,45 +20,54 @@ namespace BTCore.Runtime
 #if UNITY_EDITOR
         public float PosX { get; set; }
         public float PosY { get; set; }
-#endif        
-        
+#endif
+
         public NodeState State = NodeState.Inactive;
 
         protected Blackboard Blackboard;
 
-        public void SetBlackboard(Blackboard blackboard) {
+        public void SetBlackboard(Blackboard blackboard)
+        {
             Blackboard = blackboard;
 
-            foreach (var propertyInfo in GetType().GetProperties()) {
-                if (propertyInfo.PropertyType.IsSubclassOf(typeof(SharedValue))) {
-                    if (propertyInfo.GetValue(this) is not SharedValue sharedValue) {
+            foreach (var propertyInfo in GetType().GetProperties())
+            {
+                if (propertyInfo.PropertyType.IsSubclassOf(typeof(SharedValue)))
+                {
+                    if (propertyInfo.GetValue(this) is not SharedValue sharedValue)
+                    {
                         continue;
                     }
 
                     var property = sharedValue.GetType()
-                        .GetProperty("Blackboard", BindingFlags.Instance | BindingFlags.NonPublic);
+                        .GetProperty(nameof(Blackboard), BindingFlags.Instance | BindingFlags.NonPublic);
                     property?.SetValue(sharedValue, blackboard);
                 }
             }
         }
-        
-        public void Init() {
+
+        public void Init()
+        {
             OnInit();
         }
-        
-        public void Start() {
+
+        public void Start()
+        {
             OnStart();
         }
 
-        public NodeState Update() {
+        public NodeState Update()
+        {
             return State = OnUpdate();
         }
 
-        public void Stop() {
+        public void Stop()
+        {
             OnStop();
         }
 
-        public void Pause(bool isPause) {
+        public void Pause(bool isPause)
+        {
             OnPause(isPause);
         }
 
@@ -70,7 +78,8 @@ namespace BTCore.Runtime
         protected virtual void OnStop() { }
         protected virtual void OnPause(bool isPause) { }
 
-        public override string ToString() {
+        public override string ToString()
+        {
             return $"Node name: {Name} type: {GetType()}";
         }
     }

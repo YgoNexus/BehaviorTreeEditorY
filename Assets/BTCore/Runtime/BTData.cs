@@ -7,9 +7,9 @@
 //    Modified:  2023-10-17
 //============================================================
 
+using BTCore.Runtime.OtherNodes;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using BTCore.Runtime.OtherNodes;
 
 namespace BTCore.Runtime
 {
@@ -19,18 +19,21 @@ namespace BTCore.Runtime
         public readonly List<BTNode> Nodes = new();
 
         private readonly Dictionary<string, BTNode> _guid2Nodes = new();
-        
-#if UNITY_EDITOR        
+
+#if UNITY_EDITOR
         public readonly List<StickNoteNode> StickNotes = new();
         public readonly List<GroupNode> NodeGroups = new();
 
-        public void AddNode(BTNode node) {
+        public void AddNode(BTNode node)
+        {
             Nodes.Add(node);
             _guid2Nodes.Add(node.Guid, node);
         }
 
-        public void RemoveNode(BTNode node) {
-            if (!_guid2Nodes.ContainsKey(node.Guid)) {
+        public void RemoveNode(BTNode node)
+        {
+            if (!_guid2Nodes.ContainsKey(node.Guid))
+            {
                 return;
             }
 
@@ -45,24 +48,30 @@ namespace BTCore.Runtime
         /// </summary>
         /// <param name="index">位于Nodes列表中的索引</param>
         /// <param name="newNode">新的外部节点</param>
-        public void ReplaceNode(int index, BTNode newNode) {
-            if (index < 0 || index >= Nodes.Count) {
+        public void ReplaceNode(int index, BTNode newNode)
+        {
+            if (index < 0 || index >= Nodes.Count)
+            {
                 return;
             }
-            
+
             Nodes[index] = newNode;
             _guid2Nodes[newNode.Guid] = newNode;
         }
 
-        public BTNode GetNodeByGuid(string guid) {
+        public BTNode GetNodeByGuid(string guid)
+        {
             return _guid2Nodes.ContainsKey(guid) ? _guid2Nodes[guid] : null;
         }
-        
+
         // TODO 其他序列化可能不会触发回调
         [OnDeserialized]
-        private void OnAfterDeserialize(StreamingContext context) {
-            Nodes.ForEach(node => {
-                if (node is EntryNode entryNode) {
+        private void OnAfterDeserialize(StreamingContext context)
+        {
+            Nodes.ForEach(node =>
+            {
+                if (node is EntryNode entryNode)
+                {
                     EntryNode = entryNode;
                 }
                 _guid2Nodes.Add(node.Guid, node);
