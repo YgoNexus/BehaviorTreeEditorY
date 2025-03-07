@@ -383,7 +383,7 @@ namespace BTCore.Editor
 
             public bool IsChanged(NodePosition other)
             {
-                return Mathf.Abs(_x - other._x) > 0.1f || Mathf.Abs(_y - other._y) > 0.1f;
+                return Math.Abs(_x - other._x) > 0.1f || Math.Abs(_y - other._y) > 0.1f;
             }
         }
     }

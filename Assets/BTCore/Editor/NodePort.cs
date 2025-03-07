@@ -7,7 +7,6 @@
 //    Modified:  2023-10-05
 //============================================================
 
-using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -24,7 +23,7 @@ namespace BTCore.Editor
         private class DefaultEdgeConnectorListener : IEdgeConnectorListener
         {
             private GraphViewChange m_GraphViewChange;
-            private List<Edge> m_EdgesToCreate; 
+            private List<Edge> m_EdgesToCreate;
             private List<GraphElement> m_EdgesToDelete;
 
             public DefaultEdgeConnectorListener()
@@ -40,22 +39,25 @@ namespace BTCore.Editor
             /// </summary>
             /// <param name="edge"></param>
             /// <param name="position"></param>
-            public void OnDropOutsidePort(Edge edge, Vector2 position) {
-                var nodeEditor = (BTNodeView) null;
+            public void OnDropOutsidePort(Edge edge, Vector2 position)
+            {
+                var nodeEditor = (BTNodeView)null;
                 var isAsParent = false;
-                if (edge.output != null) {
+                if (edge.output != null)
+                {
                     nodeEditor = edge.output.node as BTNodeView;
                     isAsParent = true;
                 }
 
-                if (edge.input != null) {
+                if (edge.input != null)
+                {
                     nodeEditor = edge.input.node as BTNodeView;
                 }
-                
+
                 // 打开节点搜索窗口
                 NodeSearchWindow.Show(position, nodeEditor, isAsParent);
             }
-            
+
             public void OnDrop(GraphView graphView, Edge edge)
             {
                 m_EdgesToCreate.Clear();
@@ -91,9 +93,10 @@ namespace BTCore.Editor
                 }
             }
         }
-        
-        public NodePort(Direction portDirection, Capacity portCapacity) 
-            : base(Orientation.Vertical, portDirection, portCapacity, typeof(bool)) {
+
+        public NodePort(Direction portDirection, Capacity portCapacity)
+            : base(Orientation.Vertical, portDirection, portCapacity, typeof(bool))
+        {
             var connectorListener = new DefaultEdgeConnectorListener();
             m_EdgeConnector = new EdgeConnector<Edge>(connectorListener);
             this.AddManipulator(m_EdgeConnector);

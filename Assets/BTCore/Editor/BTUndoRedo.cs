@@ -7,10 +7,10 @@
 //    Modified:  2023-10-15
 //============================================================
 
-using System;
-using System.Collections.Generic;
 using BTCore.Runtime;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace BTCore.Editor
@@ -18,7 +18,7 @@ namespace BTCore.Editor
     public interface ICommand
     {
         void Execute();
-        
+
         void Undo();
     }
 
@@ -27,35 +27,42 @@ namespace BTCore.Editor
         private readonly string _oldData;
         private readonly string _newData;
         private readonly BTView _btView;
-        
-        public NodeDataCommand(BTView btView, string oldData, string newData) {
+
+        public NodeDataCommand(BTView btView, string oldData, string newData)
+        {
             _btView = btView;
             _oldData = oldData;
             _newData = newData;
         }
-        
-        public void Execute() {
-            try {
+
+        public void Execute()
+        {
+            try
+            {
                 var treeNodeData = JsonConvert.DeserializeObject<BTData>(_newData, BTDef.SerializerSettingsAuto);
                 _btView.ImportData(treeNodeData);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Debug.LogError($"Node data execute failed, ex: {e}");
             }
         }
 
-        public void Undo() {
-            try {
+        public void Undo()
+        {
+            try
+            {
                 var treeNodeData = JsonConvert.DeserializeObject<BTData>(_oldData, BTDef.SerializerSettingsAuto);
                 _btView.ImportData(treeNodeData);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Debug.LogError($"Node data undo failed, ex: {e}");
                 return;
             }
         }
     }
-    
+
     public class BTUndoRedo
     {
         private readonly Stack<ICommand> _undoStack = new Stack<ICommand>();
@@ -64,13 +71,16 @@ namespace BTCore.Editor
         public bool CanUndo => _undoStack.Count > 0;
         public bool CanRedo => _redoStack.Count > 0;
 
-        public void AddCommand(ICommand command) {
+        public void AddCommand(ICommand command)
+        {
             _undoStack.Push(command);
             _redoStack.Clear();
         }
-        
-        public void Undo() {
-            if (_undoStack.Count <= 0) {
+
+        public void Undo()
+        {
+            if (_undoStack.Count <= 0)
+            {
                 return;
             }
 
@@ -79,8 +89,10 @@ namespace BTCore.Editor
             _redoStack.Push(command);
         }
 
-        public void Redo() {
-            if (_redoStack.Count <= 0) {
+        public void Redo()
+        {
+            if (_redoStack.Count <= 0)
+            {
                 return;
             }
 
@@ -89,7 +101,8 @@ namespace BTCore.Editor
             _undoStack.Push(command);
         }
 
-        public void Clear() {
+        public void Clear()
+        {
             _undoStack.Clear();
             _redoStack.Clear();
         }
