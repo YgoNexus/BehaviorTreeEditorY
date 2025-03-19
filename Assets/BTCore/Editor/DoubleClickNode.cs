@@ -62,6 +62,11 @@ namespace BTCore.Editor
         {
             var nodeName = clickedElement.Node.GetType().Name;
             var assetGuids = AssetDatabase.FindAssets($"t:Script {nodeName}");
+            if(assetGuids.Length == 0)
+            {
+                Debug.LogError($"Can't find script for node {nodeName}");
+                return;
+            }
             // open first script
             var path = AssetDatabase.GUIDToAssetPath(assetGuids[0]);
             var script = AssetDatabase.LoadAssetAtPath<Object>(path);
